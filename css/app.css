@@ -1,0 +1,789 @@
+/*
+ * Generative UI Check-up: interface styles.
+ *
+ * Implements the locked visual system in ../../design/DESIGN-SYSTEM.md, translated onto
+ * the Phase 2 semantic DOM. The grammar is an editorial "readiness field sheet": ruled
+ * paper, registration marks, numbered steps, yellow annotation tabs, and the four-rail
+ * motif that never merges into a single score.
+ *
+ * Codex owns the art direction. Palette, motif and composition come from design/; this
+ * file only translates them. System fonts only, so there is no font request and no layout
+ * shift. Mobile first, no horizontal scroll at 320px.
+ */
+
+/* --------------------------------------------------------------- tokens */
+
+:root {
+  --paper: #F4F0E7;
+  --paper-hi: #FFFCF5;
+  --ink: #172033;
+  --ink-soft: #596174;
+  --body: #3E4659;
+  --blue: #4169F0;
+  --blue-deep: #2849B8;
+  --blue-wash: #E8EDFF;
+  --yellow: #F2D85D;
+  --coral: #E56F5D;
+  --line: #D6D0C3;
+  --cell: #AEB5C2;
+  --white: #FFFFFF;
+
+  --col: 760px;
+  --radius: 14px;
+}
+
+:root[data-screen="landing"] { --col: 1080px; }
+
+/* ---------------------------------------------------------------- reset */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+/* Ruled field-sheet ground. Decorative and non-interactive. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(23, 32, 51, .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 32, 51, .035) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+[hidden] { display: none !important; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------- layout */
+
+.shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 0 20px;
+}
+
+.masthead,
+.main,
+.colophon {
+  width: 100%;
+  max-width: var(--col);
+  margin-inline: auto;
+}
+
+.masthead { padding: 26px 0 22px; }
+.main { flex: 1 0 auto; padding: 4px 0 48px; }
+
+.colophon {
+  padding: 24px 0 32px;
+  border-top: 1px solid var(--line);
+}
+
+.colophon p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* Partnership lockup: text only, thin rule in place of the separator. */
+.lockup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  color: var(--ink-soft);
+}
+
+.lockup__part { text-transform: uppercase; }
+
+.lockup__rule {
+  display: block;
+  flex: none;
+  width: 28px;
+  height: 1px;
+  background: var(--line);
+}
+
+/* ----------------------------------------------------------- typography */
+
+/* Yellow annotation tab. Rotation stays under one degree. */
+.eyebrow {
+  display: inline-block;
+  margin: 0 0 22px;
+  padding: 9px 12px;
+  background: var(--yellow);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  transform: rotate(-.6deg);
+}
+
+.display {
+  margin: 0 0 18px;
+  font-size: clamp(38px, 8.4vw, 68px);
+  font-weight: 800;
+  line-height: .99;
+  letter-spacing: -.042em;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+.display--result {
+  font-size: clamp(31px, 7vw, 52px);
+  line-height: 1.02;
+  letter-spacing: -.038em;
+}
+
+.title {
+  margin: 0 0 26px;
+  font-size: clamp(25px, 5.6vw, 38px);
+  font-weight: 750;
+  line-height: 1.06;
+  letter-spacing: -.035em;
+  overflow-wrap: break-word;
+}
+
+.lede {
+  margin: 0 0 26px;
+  max-width: 58ch;
+  font-size: 19px;
+  line-height: 1.45;
+  color: var(--body);
+}
+
+.meta {
+  margin: 18px 0 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* -------------------------------------------------------------- actions */
+
+.actions { margin: 0; }
+.actions--quiet { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 4px 22px; }
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  max-width: 100%;
+  padding: 12px 20px;
+  border: 1.5px solid var(--ink);
+  border-radius: 10px;
+  background: var(--paper-hi);
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+.button--primary {
+  background: var(--ink);
+  color: var(--white);
+  box-shadow: 0 4px 0 var(--blue);
+}
+
+.button--primary:hover { background: #0E1626; }
+
+.button--quiet { background: transparent; }
+.button--quiet:hover { background: var(--paper-hi); }
+
+.button--chip {
+  min-height: 48px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 750;
+  background: var(--paper-hi);
+}
+
+.button--chip:hover { background: var(--blue-wash); border-color: var(--blue); }
+
+.button:disabled {
+  background: var(--paper);
+  border-color: var(--line);
+  color: var(--ink-soft);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.button:disabled:hover { background: var(--paper); }
+
+.button__glyph { font-weight: 700; }
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--blue-deep);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ---------------------------------------------------------------- focus */
+
+/* Interactive controls carry the strong indicator. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+summary:focus-visible,
+.choice:has(.choice__input:focus-visible) {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.choice:has(.choice__input:focus-visible) { border-radius: var(--radius); }
+
+/* Screen headings, the dialog title and the feedback confirmation are focused
+   programmatically so every new view is announced from its own title. They are not tab
+   stops and never need the control indicator.
+   Chrome matches :focus-visible here only when the move followed a keypress, which is
+   precisely when a keyboard user wants to see where focus landed; a pointer-driven move
+   paints nothing. The marker is a quiet brand ring, deliberately unlike the 3px ink ring
+   above, so a highlighted heading reads as "this view just opened" rather than as a stray
+   control outline. Control indicators are untouched. */
+[tabindex="-1"]:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 6px;
+  border-radius: 10px;
+}
+
+[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
+
+/* -------------------------------------------------------------- landing */
+
+#screen-landing { position: relative; }
+
+.cover {
+  position: relative;
+  margin: 40px auto 0;
+  width: min(100%, 320px);
+}
+
+.cover__mark {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform: rotate(1.5deg);
+  filter: drop-shadow(0 18px 28px rgba(23, 32, 51, .12));
+}
+
+.note {
+  position: absolute;
+  padding: 9px 12px;
+  background: var(--yellow);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  box-shadow: 0 8px 18px rgba(23, 32, 51, .12);
+}
+
+.note--one { left: -8px; top: 24%; transform: rotate(-4deg); }
+.note--two { right: -8px; bottom: 21%; transform: rotate(3deg); }
+
+/* Asymmetric 7/5 grid once there is room for it. */
+@media (min-width: 860px) {
+  #screen-landing {
+    display: grid;
+    grid-template-columns: 1.08fr .92fr;
+    column-gap: 64px;
+    align-items: center;
+    min-height: 600px;
+  }
+
+  .landing__copy { max-width: 610px; }
+
+  .cover {
+    justify-self: center;
+    margin: 0;
+    width: min(100%, 410px);
+  }
+}
+
+/* ------------------------------------------------------------- question */
+
+.stepper {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.stepper > span {
+  display: grid;
+  place-items: center;
+  height: 31px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--paper-hi);
+  font-size: 12px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+.stepper > span[data-state="done"] {
+  border-color: var(--blue);
+  background: var(--blue-wash);
+  color: var(--blue-deep);
+}
+
+.stepper > span[data-state="current"] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--white);
+  box-shadow: 0 3px 0 var(--yellow);
+}
+
+.progress {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-bottom: 22px;
+}
+
+.progress__count {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+/* The dimension is an annotation tab, not a headline. */
+.progress__dimension {
+  margin: 0;
+  padding: 7px 11px;
+  background: var(--yellow);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-align: right;
+  transform: rotate(.5deg);
+}
+
+.qform__fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0; /* fieldsets default to min-content, which breaks the 320px column */
+}
+
+.qform__legend {
+  display: block;
+  width: 100%;
+  padding: 0;
+}
+
+.choices { display: grid; gap: 10px; }
+
+.choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 66px;
+  padding: 12px 16px;
+  background: var(--paper-hi);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+/* The native radio stays in the DOM, focusable and arrow-navigable. Only its painting is
+   replaced by the lettered marker the design system specifies.
+   It is stretched over the whole row rather than hidden in a corner, so the control itself
+   is the hit surface: nothing can obscure it, and the tap target is the full choice row. */
+.choice__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  appearance: none;
+  cursor: pointer;
+}
+
+.choice__marker {
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  height: 34px;
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 900;
+  font-style: normal;
+  color: var(--ink-soft);
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.choice__text {
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.choice:hover { border-color: var(--blue); }
+
+.choice[data-selected],
+.choice:has(.choice__input:checked) {
+  border: 2px solid var(--blue);
+  padding: 11.5px 15.5px;
+  background: var(--blue-wash);
+}
+
+.choice[data-selected] .choice__marker,
+.choice:has(.choice__input:checked) .choice__marker {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: var(--white);
+}
+
+/* Inset ruled note. */
+.help {
+  margin: 16px 0 0;
+  padding: 0 14px;
+  background: rgba(255, 252, 245, .7);
+  border-left: 4px solid var(--yellow);
+}
+
+.help__summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 11px 0;
+  font-size: 14px;
+  font-weight: 750;
+  color: var(--blue-deep);
+  cursor: pointer;
+}
+
+.help__summary::marker { content: none; }
+.help__summary::-webkit-details-marker { display: none; }
+
+.help__summary::before {
+  content: "+";
+  flex: none;
+  margin-right: 9px;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.help[open] .help__summary::before { content: "\2212"; }
+
+.help__body {
+  margin: 0;
+  padding: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.formerror {
+  margin: 14px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--coral);
+}
+
+.qform__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.qform__actions .button { white-space: nowrap; }
+.qform__actions .button--primary { flex: 1 1 auto; margin-left: auto; }
+
+/* --------------------------------------------------------------- result */
+
+#screen-result { position: relative; }
+
+.result-index {
+  position: absolute;
+  right: 0;
+  top: 2px;
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--ink);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  font-variant-numeric: tabular-nums;
+}
+
+#result-summary { margin-bottom: 30px; }
+
+.block { margin: 30px 0 0; }
+
+/* Sentence case, exactly as COPY-TR.md authors these headings. No text-transform, so
+   what a copy reviewer sees on screen is what the source document says. */
+.block__title {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  color: var(--ink-soft);
+}
+
+.block__body { margin: 0; font-size: 17px; line-height: 1.5; color: var(--body); }
+
+/* Four independent rails inside one sheet. They never merge into a total. */
+.profiles {
+  list-style: none;
+  display: grid;
+  gap: 18px;
+  margin: 0;
+  padding: 24px;
+  background: var(--paper-hi);
+  border: 1px solid var(--line);
+  box-shadow: 8px 8px 0 var(--blue-wash);
+}
+
+/* Positioned so each row's visually-hidden readout stays inside its own row. */
+.profile { position: relative; }
+
+.profile__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 9px;
+}
+
+.profile__name { font-size: 15px; font-weight: 750; }
+
+.profile__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.profile__score { font-variant-numeric: tabular-nums; }
+
+.profile__meter {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 5px;
+}
+
+.profile__seg {
+  height: 13px;
+  border: 1px solid var(--cell);
+  border-radius: 2px;
+  background: transparent;
+}
+
+.profile__seg--on { border-color: var(--blue); background: var(--blue); }
+
+.gaps {
+  margin: 0;
+  padding-left: 1.35em;
+  display: grid;
+  gap: 10px;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--body);
+}
+
+/* Strength and next-experiment take the ruled-article treatment. */
+#strength-heading + .block__body,
+#experiment-heading + .block__body {
+  padding: 18px 20px;
+  background: rgba(255, 252, 245, .72);
+  border-top: 4px solid var(--ink);
+  color: var(--body);
+}
+
+#experiment-heading + .block__body { border-top-color: var(--yellow); }
+
+/* ---------------------------------------------------------------- share */
+
+.share { margin: 30px 0 0; }
+
+.share__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.share__status {
+  margin: 12px 0 0;
+  min-height: 1px;
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--body);
+}
+
+.share__status[data-tone="error"] { color: var(--coral); font-weight: 700; }
+
+/* ------------------------------------------------------------- feedback */
+
+.feedback { margin: 34px 0 0; }
+
+.feedback .block__title {
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: 0;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+
+.feedback__choices { display: flex; flex-wrap: wrap; gap: 10px; }
+.feedback__thanks { margin: 0; font-size: 16px; }
+
+.disclaimer {
+  margin: 30px 0 4px;
+  padding: 16px 18px;
+  background: var(--paper-hi);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--yellow);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.outbound {
+  margin: 34px 0 0;
+  padding: 22px 20px;
+  background: var(--paper-hi);
+  border: 1px solid var(--line);
+}
+
+.outbound .block__title {
+  font-size: 19px;
+  font-weight: 750;
+  letter-spacing: -.01em;
+  color: var(--ink);
+}
+
+.outbound .block__body { margin-bottom: 16px; }
+
+/* ---------------------------------------------------------- methodology */
+
+.methodology {
+  width: calc(100% - 32px);
+  max-width: 640px;
+  max-height: calc(100dvh - 40px);
+  padding: 0;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper-hi);
+  color: var(--ink);
+  overflow: auto;
+}
+
+.methodology::backdrop { background: rgba(23, 32, 51, .58); }
+
+.methodology__inner { padding: 26px 24px 24px; }
+
+.methodology__title {
+  margin: 0 0 18px;
+  font-size: clamp(22px, 5vw, 28px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -.03em;
+}
+
+.methodology p {
+  margin: 0 0 14px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--body);
+}
+
+.methodology .actions { margin-top: 20px; }
+
+/* --------------------------------------------------------------- motion */
+
+.screen--enter { animation: screen-in 160ms ease-out both; }
+
+@keyframes screen-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .screen--enter { animation: none; }
+}
+
+/* ---------------------------------------------------------- narrow tune */
+
+@media (max-width: 420px) {
+  .shell { padding: 0 16px; }
+  .button { font-size: 16px; padding: 12px 16px; }
+  .choice { min-height: 60px; padding: 10px 12px; }
+  .choice[data-selected],
+  .choice:has(.choice__input:checked) { padding: 9.5px 11.5px; }
+  .choice__text { font-size: 15px; }
+  .stepper { gap: 5px; }
+  .stepper > span { height: 28px; font-size: 11px; }
+  .profiles { padding: 18px; box-shadow: 5px 5px 0 var(--blue-wash); }
+  .lede { font-size: 17px; }
+  .note { display: none; }
+  .cover { width: min(100%, 250px); margin-top: 32px; }
+}
