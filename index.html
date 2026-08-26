@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!--
+  Content Security Policy for a static host, delivered as a meta element because GitHub
+  Pages cannot set response headers.
+
+  It describes exactly what this build loads: its own module scripts, its own stylesheet,
+  its own SVG assets, and nothing else. Canvas export needs no allowance; the PNG download
+  is a same-document blob: anchor and native sharing goes through the OS sheet, so neither
+  needs a network directive.
+
+  frame-ancestors and report-uri are deliberately absent: a meta-delivered policy ignores
+  them, and including them only produces console warnings. The host should send those two
+  as real headers.
+
+  When Mert confirms the GA4 and LinkedIn properties, analytics needs exactly:
+    script-src  + https://www.googletagmanager.com https://snap.licdn.com
+    img-src     + https://www.google-analytics.com https://px.ads.linkedin.com
+    connect-src + https://www.google-analytics.com https://region1.google-analytics.com
+  Nothing is added until then, so the policy permits only the implemented sources.
+-->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+
+<title>Generative UI Check-up | Soft Commitment x UserGuiding</title>
+<meta name="description" content="8 soruda arayüzünüzün değer uyumunu, sistem hazırlığını, kontrol katmanını ve keşif dayanıklılığını görün. Teknik audit değil, yazarlı bir öz değerlendirme.">
+<link rel="canonical" href="https://games.userguiding.com/generative-ui-checkup/">
+
+<!-- Relative so the page works from the project subpath and from a local server. -->
+<link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Soft Commitment x UserGuiding">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:url" content="https://games.userguiding.com/generative-ui-checkup/">
+<meta property="og:title" content="Arayüzünüz Generative UI'ya ne kadar hazır?">
+<meta property="og:description" content="8 soru. Dört ayrı profil. Yaklaşık 60 saniye.">
+<!-- Absolute by requirement: crawlers do not resolve relative OG images. -->
+<meta property="og:image" content="https://games.userguiding.com/generative-ui-checkup/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Arayüzünüz Generative UI'ya ne kadar hazır?">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Arayüzünüz Generative UI'ya ne kadar hazır?">
+<meta name="twitter:description" content="8 soru. Dört ayrı profil. Yaklaşık 60 saniye.">
+<meta name="twitter:image" content="https://games.userguiding.com/generative-ui-checkup/assets/og-image.png">
+<meta name="twitter:image:alt" content="Arayüzünüz Generative UI'ya ne kadar hazır?">
+
+<link rel="stylesheet" href="./css/app.css">
+</head>
+<body>
+
+<div class="shell">
+
+  <header class="masthead">
+    <p class="lockup" id="masthead-brand"><span class="lockup__part" lang="en">Soft Commitment</span><span class="visually-hidden"> x </span><i class="lockup__rule" aria-hidden="true"></i><span class="lockup__part" lang="en">UserGuiding</span></p>
+  </header>
+
+  <main class="main" id="main">
+
+    <!-- ============================================================ landing -->
+    <section class="screen" id="screen-landing" aria-labelledby="landing-heading">
+      <div class="landing__copy">
+        <p class="eyebrow">GENERATIVE UI CHECK-UP</p>
+        <h1 class="display" id="landing-heading" tabindex="-1">Arayüzünüz Generative UI'ya ne kadar hazır?</h1>
+        <p class="lede">8 soru. Dört ayrı profil. Çünkü üretilebilir olmakla kontrollü ve bulunabilir olmak aynı şey değil.</p>
+        <p class="actions">
+          <button class="button button--primary" type="button" data-action="start">Check-up'ı başlat</button>
+        </p>
+        <p class="meta">Yaklaşık 60 saniye · Ürün incelemesi değildir · Ham yanıtlar gönderilmez</p>
+        <p class="actions actions--quiet">
+          <button class="link" type="button" data-action="methodology" data-source="landing">Nasıl hesaplanıyor?</button>
+        </p>
+      </div>
+      <div class="cover" aria-hidden="true">
+        <img class="cover__mark" src="./assets/checkup-mark.svg" alt="" width="420" height="420">
+        <span class="note note--one">8 SORU</span>
+        <span class="note note--two">4 PROFİL</span>
+      </div>
+    </section>
+
+    <!-- ======================================================= instructions -->
+    <section class="screen" id="screen-instructions" aria-labelledby="instructions-heading" hidden>
+      <h1 class="title" id="instructions-heading" tabindex="-1">Bugünkü ürünü cevaplayın.</h1>
+      <p class="lede">Roadmap'i veya “yapabiliriz” dediğiniz şeyleri saymayın. İki seçenek arasında kalırsanız doğrulayabildiğiniz daha düşük seçeneği işaretleyin.</p>
+      <p class="actions">
+        <button class="button button--primary" type="button" data-action="begin">Anladım, başlayalım</button>
+      </p>
+    </section>
+
+    <!-- =========================================================== question -->
+    <section class="screen" id="screen-question" aria-labelledby="question-heading" hidden>
+
+      <div class="stepper"
+           id="progress-track"
+           role="progressbar"
+           aria-labelledby="progress-count"
+           aria-valuemin="1"
+           aria-valuemax="8"
+           aria-valuenow="1">
+        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span>
+      </div>
+      <div class="progress">
+        <p class="progress__count" id="progress-count">1 / 8</p>
+        <p class="progress__dimension" id="progress-dimension"></p>
+      </div>
+
+      <form class="qform" id="question-form" novalidate>
+        <fieldset class="qform__fieldset">
+          <legend class="qform__legend">
+            <h1 class="title" id="question-heading" tabindex="-1"></h1>
+          </legend>
+          <div class="choices" id="question-choices"></div>
+        </fieldset>
+
+        <details class="help" id="question-help" hidden>
+          <summary class="help__summary" id="question-help-summary"></summary>
+          <p class="help__body" id="question-help-body"></p>
+        </details>
+
+        <p class="formerror" id="question-error" role="alert" hidden></p>
+
+        <div class="qform__actions">
+          <button class="button button--quiet" type="button" data-action="back" id="question-back">Geri</button>
+          <button class="button button--primary" type="submit" id="question-next" disabled>Devam</button>
+        </div>
+      </form>
+
+    </section>
+
+    <!-- ============================================================= result -->
+    <section class="screen" id="screen-result" aria-labelledby="result-heading" hidden>
+
+      <p class="result-index" id="result-index" aria-hidden="true"></p>
+      <p class="eyebrow">SONUCUNUZ</p>
+      <h1 class="display display--result" id="result-heading" tabindex="-1"></h1>
+      <p class="lede" id="result-summary"></p>
+
+      <section class="block" aria-labelledby="profiles-heading">
+        <h2 class="block__title" id="profiles-heading">Dört ayrı profil</h2>
+        <ul class="profiles" id="result-profiles"></ul>
+      </section>
+
+      <section class="block" aria-labelledby="strength-heading">
+        <h2 class="block__title" id="strength-heading">Güçlü tarafınız</h2>
+        <p class="block__body" id="result-strength"></p>
+      </section>
+
+      <section class="block" aria-labelledby="gaps-heading">
+        <h2 class="block__title" id="gaps-heading">Önce bunları güçlendirin</h2>
+        <ol class="gaps" id="result-gaps"></ol>
+      </section>
+
+      <section class="block" aria-labelledby="experiment-heading">
+        <h2 class="block__title" id="experiment-heading">Bir sonraki küçük deney</h2>
+        <p class="block__body" id="result-experiment"></p>
+      </section>
+
+      <div class="share" id="result-share-mount">
+        <div class="share__actions">
+          <button class="button button--primary" type="button" data-action="share-native" id="share-native" hidden>Sonucumu paylaş<span class="button__glyph" aria-hidden="true">↗</span></button>
+          <button class="button button--primary" type="button" data-action="share-download" id="share-download">Sonuç kartını indir<span class="button__glyph" aria-hidden="true">↓</span></button>
+          <button class="button button--quiet" type="button" data-action="share-copy" id="share-copy">Ekip arkadaşına gönder</button>
+        </div>
+        <p class="share__status" id="share-status" role="status"></p>
+      </div>
+
+      <section class="feedback" id="result-feedback" aria-labelledby="feedback-heading">
+        <h2 class="block__title" id="feedback-heading">Bu sonuç ürününüzü ne kadar doğru tarif etti?</h2>
+        <div class="feedback__choices" id="feedback-choices">
+          <button class="button button--chip" type="button" data-feedback="yes">Evet</button>
+          <button class="button button--chip" type="button" data-feedback="partial">Kısmen</button>
+          <button class="button button--chip" type="button" data-feedback="no">Hayır</button>
+        </div>
+        <p class="feedback__thanks" id="feedback-thanks" tabindex="-1" hidden>Teşekkürler. Bu geri bildirim soru setini geliştirmemize yardımcı olacak.</p>
+      </section>
+
+      <p class="disclaimer">Bu sonuç, verdiğiniz yanıtlara dayanan Soft Commitment x UserGuiding düşünce çerçevesidir. Teknik denetim, sektör standardı, benchmark veya ürününüzün Generative UI kullandığına dair doğrulama değildir. Ürününüze bağlanmaz; kod, dashboard veya müşteri verisi incelemez.</p>
+
+      <p class="actions actions--quiet">
+        <button class="link" type="button" data-action="methodology" data-source="result">Metodolojiyi gör</button>
+        <button class="link" type="button" data-action="restart">Yeniden başla</button>
+      </p>
+
+      <!-- Rendered only when a Soft Commitment destination is configured at launch time. -->
+      <aside class="outbound" id="result-outbound" aria-labelledby="outbound-heading" hidden>
+        <h2 class="block__title" id="outbound-heading">Menü kaybolursa ürün kendini nasıl anlatır?</h2>
+        <p class="block__body">Generative UI'nın keşif sorununu Soft Commitment serisinde takip edin.</p>
+        <a class="button button--quiet" id="result-outbound-link" rel="noopener" data-action="outbound">Soft Commitment'ta devam et</a>
+      </aside>
+
+    </section>
+
+  </main>
+
+  <footer class="colophon">
+    <p>Soft Commitment x UserGuiding · Generative UI üzerine editoryal düşünce çerçevesi</p>
+  </footer>
+
+</div>
+
+<dialog class="methodology" id="methodology" aria-labelledby="methodology-heading">
+  <div class="methodology__inner">
+    <h2 class="methodology__title" id="methodology-heading" tabindex="-1">Bu sonuç nasıl hesaplanıyor?</h2>
+    <p>Check-up, verdiğiniz sekiz yanıttan dört ayrı 0–6 profil çıkarır: değer uyumu, sistem hazırlığı, kontrol ve güvenlik, keşif dayanıklılığı. Güçlü bir alan zayıf bir alanı kapatmaz. Sonuç arketipi bu nedenle tek bir toplam puandan değil, profil eşiklerinden belirlenir.</p>
+    <p>Sorular ve eşikler Soft Commitment x UserGuiding tarafından bu çalışma için yazılmış editoryal bir düşünce çerçevesidir. Kalibre edilmiş sektör standardı veya benchmark değildir.</p>
+    <p>Ürününüze bağlanmayız; kod, dashboard, müşteri verisi veya şirket bilgisi incelemeyiz. Ham yanıtlar tarayıcıda geçici olarak tutulur ve analiz araçlarına gönderilmez. Ölçüm için yalnız soru numarası, tamamlanma, sonuç arketipi ve kaba profil bantları gibi anonim olaylar kullanılabilir.</p>
+    <p>Sonuç teknik denetim, sertifika, production onayı veya ürününüzün Generative UI kullandığına dair doğrulama değildir.</p>
+    <p class="actions">
+      <button class="button button--primary" type="button" data-action="methodology-close">Kapat</button>
+    </p>
+  </div>
+</dialog>
+
+<script type="module" src="./js/app.js"></script>
+</body>
+</html>
