@@ -174,6 +174,14 @@ body::before {
   overflow-wrap: break-word;
 }
 
+/* Question prompts carry more scenario context than the short screen headings. */
+.qform .title {
+  max-width: 31ch;
+  font-size: clamp(22px, 4.8vw, 32px);
+  line-height: 1.14;
+  letter-spacing: -.025em;
+}
+
 .lede {
   margin: 0 0 26px;
   max-width: 58ch;
@@ -278,7 +286,7 @@ summary:focus-visible,
 
 .choice:has(.choice__input:focus-visible) { border-radius: var(--radius); }
 
-/* Screen headings, the dialog title and the feedback confirmation are focused
+/* Screen headings and dialog titles are focused
    programmatically so every new view is announced from its own title. They are not tab
    stops and never need the control indicator.
    Chrome matches :focus-visible here only when the move followed a keypress, which is
@@ -673,47 +681,46 @@ summary:focus-visible,
 
 .share__status[data-tone="error"] { color: var(--coral); font-weight: 700; }
 
-/* ------------------------------------------------------------- feedback */
+/* ------------------------------------------------------------- partners */
 
-.feedback { margin: 34px 0 0; }
-
-.feedback .block__title {
-  font-size: 17px;
-  font-weight: 750;
-  letter-spacing: 0;
-  color: var(--ink);
-  margin-bottom: 14px;
-}
-
-.feedback__choices { display: flex; flex-wrap: wrap; gap: 10px; }
-.feedback__thanks { margin: 0; font-size: 16px; }
-
-.disclaimer {
-  margin: 30px 0 4px;
-  padding: 16px 18px;
-  background: var(--paper-hi);
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--yellow);
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--ink-soft);
-}
-
-.outbound {
+.partners {
   margin: 34px 0 0;
-  padding: 22px 20px;
-  background: var(--paper-hi);
+}
+
+.partners__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.partner {
+  display: grid;
+  gap: 10px;
+  min-height: 142px;
+  padding: 20px;
   border: 1px solid var(--line);
+  background: var(--paper-hi);
+  color: var(--body);
+  font-size: 14px;
+  line-height: 1.5;
+  text-decoration: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
-.outbound .block__title {
-  font-size: 19px;
-  font-weight: 750;
-  letter-spacing: -.01em;
+.partner:hover {
+  border-color: var(--blue);
+  box-shadow: 5px 5px 0 var(--blue-wash);
+  transform: translate(-1px, -1px);
+}
+
+.partner__wordmark {
+  align-self: start;
   color: var(--ink);
+  font-size: 19px;
+  letter-spacing: -.025em;
 }
 
-.outbound .block__body { margin-bottom: 16px; }
+.partner__wordmark--ug { color: var(--blue-deep); }
 
 /* ---------------------------------------------------------- methodology */
 
@@ -749,6 +756,93 @@ summary:focus-visible,
 }
 
 .methodology .actions { margin-top: 20px; }
+
+/* -------------------------------------------------------- share prepare */
+
+.shareprep {
+  width: calc(100% - 32px);
+  max-width: 980px;
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  overflow: auto;
+}
+
+.shareprep::backdrop { background: rgba(23, 32, 51, .64); }
+
+.shareprep__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+  gap: 28px;
+  padding: 28px;
+}
+
+.shareprep__title {
+  margin: 0 0 12px;
+  font-size: clamp(24px, 4vw, 34px);
+  line-height: 1.08;
+  letter-spacing: -.03em;
+}
+
+.shareprep__intro,
+.shareprep__note,
+.shareprep__status {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--body);
+}
+
+.shareprep__intro { margin: 0 0 18px; }
+.shareprep__note { margin: 12px 0 0; }
+.shareprep__status { min-height: 1.5em; margin: 10px 0 0; font-weight: 700; }
+.shareprep__status[data-tone="error"] { color: var(--coral); }
+
+.shareprep__label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+
+.shareprep__draft {
+  width: 100%;
+  min-height: 260px;
+  resize: vertical;
+  padding: 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  background: var(--paper-hi);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.shareprep__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 20px;
+  margin-top: 18px;
+}
+
+.shareprep__preview {
+  align-self: start;
+  padding: 12px;
+  background: var(--paper-hi);
+  border: 1px solid var(--line);
+  box-shadow: 8px 8px 0 var(--blue-wash);
+}
+
+.shareprep__preview canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
 
 /* --------------------------------------------------------------- motion */
 
@@ -786,4 +880,11 @@ summary:focus-visible,
   .lede { font-size: 17px; }
   .note { display: none; }
   .cover { width: min(100%, 250px); margin-top: 32px; }
+}
+
+@media (max-width: 760px) {
+  .partners__grid { grid-template-columns: 1fr; }
+  .shareprep__inner { grid-template-columns: 1fr; padding: 20px; }
+  .shareprep__preview { max-width: 320px; order: -1; }
+  .shareprep__draft { min-height: 220px; }
 }

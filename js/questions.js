@@ -22,122 +22,137 @@ function deepFreeze(value) {
 /**
  * The eight questions in presentation order. `dimension` matches the profile ids in
  * ./scoring.js; the tests assert the two stay in step. Option index is the answer value.
- * A help disclosure is allowed on q3, q4 and q6 only.
+ * Every question carries a short help disclosure.
  */
 export const QUESTIONS = deepFreeze([
   {
     id: "q1",
     dimension: "valueFit",
-    text: "Aynı işi yapan iki kullanıcı için doğru çalışma yüzeyi ne kadar farklı olmalı?",
+    text: "Üründe aynı işi yapmaya çalışan yeni ve deneyimli iki kullanıcıyı düşünün. İhtiyaç duydukları ekran ne kadar farklı olmalı?",
     options: [
-      "Neredeyse hiç: aynı adımlar, aynı ekran",
-      "Aynı yapı, farklı içerik veya öncelik",
-      "Rol ya da ürün durumu bazı bileşenleri ve sıralamayı değiştiriyor",
-      "Amaç, rol ve canlı duruma göre yüzeyin büyük bölümü değişmeli"
+      "Değişmez: ikisi de aynı adımları ve aynı ekranı kullanır",
+      "Yapı aynı kalır; yalnız içerik veya öncelik değişir",
+      "Rol ya da ürün durumu bazı bileşenleri ve sıralamayı değiştirir",
+      "Kullanıcının amacı, rolü ve canlı veriler ekranın büyük bölümünü değiştirmelidir"
     ],
-    help: null
+    help: {
+      label: "Değişken çalışma ekranı ne demek?",
+      body: "Generative UI, aynı sabit ekranı herkese göstermek yerine kullanıcının amacına ve mevcut durumuna göre gerekli bileşenleri o anda bir araya getirir. Değer, yalnız içerik değiştiğinde değil, görevi tamamlama biçimi gerçekten değiştiğinde oluşur."
+    }
   },
   {
     id: "q2",
     dimension: "valueFit",
-    text: "Bu değişken yüzeye ihtiyaç duyulan işler ürününüzde ne kadar önemli?",
+    text: "Generative UI ile uyarlamak istediğiniz bu görev, activation, retention veya revenue sonuçları için ne kadar önemli?",
     options: [
-      "Nadiren oluyor; daha çok kozmetik bir fark",
-      "Tekrarlanıyor ama düşük etkili",
-      "Sık oluyor ve birkaç adım sürüyor",
-      "Ürünün ana işi; sık, çok adımlı ve zaman kritik"
+      "Nadiren yapılır; etkisi daha çok görseldir",
+      "Tekrarlanır ama kullanıcı veya iş sonucu üzerindeki etkisi düşüktür",
+      "Sık yapılır, birkaç adımdan oluşur ve önemli bir sonucu etkiler",
+      "Ürünün ana işlerinden biridir; activation, retention veya revenue için kritiktir"
     ],
-    help: null
+    help: {
+      label: "Kritik kullanıcı görevi ne demek?",
+      body: "Kullanıcının üründen değer almasını doğrudan etkileyen iştir. Örneğin ilk kurulumu tamamlamak activation'ı, düzenli rapor hazırlamak retention'ı, plan yükseltmek ise revenue'yu etkileyebilir."
+    }
   },
   {
     id: "q3",
     dimension: "systemReadiness",
-    text: "Bugünkü arayüzünüz hangi yapıya daha yakın?",
+    text: "Yarın bir model ürün ekranınızı oluşturacak olsa, kullanabileceği bileşen sistemi ne kadar hazır?",
     options: [
-      "Sayfaya özel, birbirine bağlı ekranlar",
-      "Ortak görsel bloklar var ama davranışları sayfaya bağlı",
-      "Yeniden kullanılabilir bileşenler ve tanımlı durumlar var",
-      "Bileşenlerin girdileri, izinleri ve durumları açık bir katalogda tanımlı"
+      "Ekranlar sayfaya özel yazılmış; parçalar birbirine sıkı bağlıdır",
+      "Ortak görsel bloklar vardır; davranışları hâlâ sayfaya bağlıdır",
+      "Yeniden kullanılabilir bileşenler ve tanımlı durumlar vardır",
+      "Bileşen girdileri, durumları, izinleri ve kullanım kuralları güncel bir katalogda tanımlıdır"
     ],
     help: {
-      label: "Bileşen kataloğu ne demek?",
-      body: "Bir bileşenin ne gösterebildiğini, hangi girdileri aldığını, hangi durumlarda çalıştığını ve kimlerin kullanabildiğini tanımlayan güncel envanter."
+      label: "Bileşen sözleşmesi ne demek?",
+      body: "Bir bileşenin hangi veriyi alabileceğini, hangi durumlarda çalıştığını, kimlerin kullanabildiğini ve hata halinde ne göstereceğini açıklayan teknik sözleşmedir. Model ancak bu sınırlar açıksa güvenli bir ekran kurabilir."
     }
   },
   {
     id: "q4",
     dimension: "systemReadiness",
-    text: "Sistem, kullanıcı için o anda neyin önemli olduğunu hangi doğrulanmış sinyallerden anlayabilir?",
+    text: "Generative UI, kullanıcıya o anda doğru ekranı göstermek için hangi güvenilir bağlam sinyallerini kullanabilir?",
     options: [
-      "Bulunduğu sayfa dışında anlamlı bir sinyal yok",
-      "Rol, plan veya hesap bilgisi",
-      "Bunlara ek olarak canlı ürün durumu ve kullanıcı olayları",
-      "Açık kullanıcı amacı, canlı durum, izin verilen geçmiş ve yetkiler"
+      "Kullanıcının bulunduğu sayfa dışında anlamlı bir sinyal yoktur",
+      "Rol, plan veya hesap bilgisi kullanılabilir",
+      "Bunlara ek olarak canlı ürün durumu ve yakın tarihli kullanıcı hareketleri kullanılabilir",
+      "Açık kullanıcı amacı, canlı durum, izin verilen geçmiş ve yetkiler birlikte kullanılabilir"
     ],
     help: {
-      label: "Doğrulanmış sinyal ne demek?",
-      body: "Sistemin gerçekten erişebildiği, güncel, izinli ve kaynağı belli kullanıcı veya ürün bilgisi."
+      label: "Bağlam sinyali ne demek?",
+      body: "Kullanıcının rolü, planı, açık amacı, son hareketleri veya hesabın canlı durumu gibi ekran kararını etkileyen bilgidir. Sinyal güncel, izinli ve kaynağı belli değilse kişiselleştirme güvenilir olmaz."
     }
   },
   {
     id: "q5",
     dimension: "controlSafety",
-    text: "Yüzey yanlış kurulduğunda kullanıcı ne kadar kontrol sahibi?",
+    text: "Generative UI yanlış veya alakasız bir ekran gösterirse kullanıcı nasıl yoluna devam eder?",
     options: [
-      "Neden değiştiğini göremez; sabit bir geri dönüş yolu yok",
-      "Geri çıkabilir veya baştan başlayabilir",
-      "Nedenini görür; amacı değiştirebilir veya sabit ekrana dönebilir",
-      "Önizleyebilir, düzenleyebilir, sıfırlayabilir ve kalıcı bir alternatif kullanabilir"
+      "Ekranın neden değiştiğini göremez; sabit bir geri dönüş yolu yoktur",
+      "Geri çıkabilir veya akışı baştan başlatabilir",
+      "Değişikliğin nedenini görür; amacını değiştirebilir veya sabit ekrana dönebilir",
+      "Ekranı önizleyebilir, düzenleyebilir, sıfırlayabilir ve kalıcı bir alternatif kullanabilir"
     ],
-    help: null
+    help: {
+      label: "Güvenli geri dönüş ne demek?",
+      body: "Üretilen ekran işe yaramadığında kullanıcının dönebileceği güvenilir alternatiftir. Sabit ürün ekranı, önceki görünüm veya sıfırlama seçeneği bu geri dönüşü sağlayabilir."
+    }
   },
   {
     id: "q6",
     dimension: "controlSafety",
-    text: "Bu yüzeyden kritik bir işlem başlatıldığında hangi korumalar var?",
+    text: "Üretilen ekrandan ödeme, veri silme veya yetki değiştirme gibi kritik bir işlem başlatılırsa ne olur?",
     options: [
       "İşlem doğrudan çalışır",
       "Standart bir onay ekranı gösterilir",
-      "İzin kontrolü, işlem özeti ve geri alma ya da işlem kaydı vardır",
-      "Kritik işlem yoktur; veya yalnız onaylı işlemler önizleme, izin, politika ve denetim kaydıyla çalışır"
+      "İzin kontrolü ve işlem özeti gösterilir; geri alma veya işlem kaydı vardır",
+      "Yalnız önceden onaylanmış işlemler, önizleme, izin, kurallar ve denetim kaydıyla çalışır"
     ],
     help: {
       label: "Kritik işlem ne demek?",
-      body: "Para, veri, erişim, müşteri iletişimi veya geri alınması zor bir durum üzerinde değişiklik yapan işlem."
+      body: "Para, veri, erişim veya müşteri iletişimi üzerinde değişiklik yapan ve geri alınması zor olabilen işlemdir. Ödeme almak, veri silmek, kullanıcı davet etmek veya yetki değiştirmek bu gruba girer."
     }
   },
   {
     id: "q7",
     dimension: "discoveryResilience",
-    text: "Ürünün yapabildikleri, ana menüden bağımsız olarak ne kadar tanımlı?",
+    text: "Sol menü yarın kaybolsa, sistem ürününüzün neler yapabildiğini nereden bilir?",
     options: [
-      "Güncel bir envanter yok",
-      "Dokümantasyonda veya ekip bilgisinde dağınık halde",
-      "Sahibi ve hedef kitlesi tanımlı, güncel bir özellik kataloğu var",
-      "Katalog güncel, aranabilir ve rol, izin ve önkoşullarla bağlantılı"
+      "Ürünün yapabildiği işleri gösteren güncel bir envanter yoktur",
+      "Bilgi dokümantasyonda veya ekip içinde dağınık halde durur",
+      "Sahibi ve hedef kitlesi tanımlı, güncel bir özellik kataloğu vardır",
+      "Katalog güncel ve aranabilirdir; rol, izin ve ön koşullarla bağlantılıdır"
     ],
-    help: null
+    help: {
+      label: "Özellik kataloğu ne demek?",
+      body: "Ürünün yapabildiği işleri menü yapısından bağımsız olarak tanımlayan güncel envanterdir. Her özelliğin hedef kullanıcısı, izinleri, ön koşulları ve sahibi burada yer alır."
+    }
   },
   {
     id: "q8",
     dimension: "discoveryResilience",
-    text: "Bir özellik o anki yüzeyde görünmüyorsa kullanıcı onu nasıl bulabilir?",
+    text: "Generative UI bir özelliği o anda göstermediyse kullanıcı onu daha sonra nasıl bulur?",
     options: [
-      "Ancak adını biliyorsa sorar veya desteğe yazar",
-      "Dokümantasyon ya da aramada bulabilir",
+      "Ancak adını biliyorsa arar veya support ekibine sorar",
+      "Dokümantasyonda ya da aramada bulabilir",
       "Ekrandan bağımsız, gezilebilir bir ürün içi merkezden keşfedebilir",
       "Hem gezilebilir katalogdan hem bağlama uygun yönlendirmeden keşfedebilir; daha önce gördüğü işe geri dönebilir"
     ],
-    help: null
+    help: {
+      label: "Keşfedilebilirlik ne demek?",
+      body: "Bir özellik o an ekranda görünmese bile kullanıcının onu daha sonra arayıp bulabilmesidir. Aranabilir ürün merkezi, bağlama uygun yönlendirme ve son kullanılanlara dönüş bu dayanıklılığı sağlar."
+    }
   }
 ]);
 
 /** Public profile names, keyed by the profile ids in ./scoring.js. */
 export const PROFILE_NAMES = deepFreeze({
-  valueFit: "Değer uyumu",
-  systemReadiness: "Sistem hazırlığı",
+  valueFit: "Kullanım senaryosu",
+  systemReadiness: "Teknik hazırlık",
   controlSafety: "Kontrol ve güvenlik",
-  discoveryResilience: "Keşif dayanıklılığı"
+  discoveryResilience: "Keşfedilebilirlik"
 });
 
 /** Public band labels, keyed by the band ids in ./scoring.js. */
@@ -150,34 +165,34 @@ export const BAND_LABELS = deepFreeze({
 /**
  * Archetype copy, keyed by the archetype ids in ./scoring.js.
  *
- * The A5 summary already carries the "Bu bir production onayı değildir." sentence that
+ * The A5 summary already carries the "Bu sonuç, ürünü canlıya alma onayı değildir." sentence that
  * SCORING.md requires appended to every A5 body, so the renderer appends nothing.
  */
 export const ARCHETYPE_CONTENT = deepFreeze({
   problem_seeking_genui: {
-    title: "ÖNCE GÖREV, SONRA ARAYÜZ",
-    summary: "Uyarlama fikri var. Değişken bir çalışma yüzeyinin çözeceği ana iş henüz net değil.",
-    experiment: "Tek bir kullanıcı görevini seçin. Rol veya canlı durum değiştiğinde gereken adımlar gerçekten değişiyor mu, önce bunu gözlemleyin."
+    title: "ÖNCE DOĞRU GÖREVİ BULUN",
+    summary: "Generative UI fikri var, fakat hangi kullanıcı görevinde ölçülebilir değer yaratacağı henüz net değil.",
+    experiment: "Tek bir görevi seçin. Yeni ve deneyimli kullanıcıların ihtiyaç duyduğu adımlar gerçekten değişiyor mu, beş kullanıcı görüşmesiyle doğrulayın."
   },
   idea_ready_ground_not: {
-    title: "SENARYO NET, ZEMİN SIRADA",
-    summary: "Kullanım senaryosu var. Bileşen, bağlam veya kullanıcı kontrolü katmanı bugün doğrulanmış değil.",
-    experiment: "Mevcut ve güvenilir bileşenlerle, kritik işlem içermeyen, sabit ekrana dönüşü olan tek bir görev prototipi kurun."
+    title: "SENARYO VAR, ALTYAPI HAZIR DEĞİL",
+    summary: "Generative UI için anlamlı bir kullanım alanı görüyorsunuz. Ancak bileşen sistemi, bağlam sinyalleri veya güvenli geri dönüş katmanı pilot için henüz yeterli değil.",
+    experiment: "Kritik işlem içermeyen tek bir görev seçin. Mevcut bileşenlerle çalışan ve sabit ekrana dönebilen bir prototip hazırlayın."
   },
   composition_ready_catalog_blind: {
-    title: "KOMPOZİSYONA YAKIN, KATALOG KÖRÜ",
-    summary: "Yüzeyiniz değişmeye hazır. Özellik kataloğunuz henüz değil.",
-    experiment: "Navigasyonu uyarlamadan önce menüden bağımsız, aranabilir bir capability kataloğu ve geri bulma yolu tasarlayın."
+    title: "EKRAN HAZIR, ÜRÜN KATALOĞU KAYIP",
+    summary: "Ekranı dinamik kurabilecek teknik zemin güçlü. Ancak sistem ürünün tüm özelliklerini menüden bağımsız tanımıyor; görünmeyen işler kullanıcı için yok olabilir.",
+    experiment: "Tek bir ürün alanı için menüden bağımsız, aranabilir bir özellik kataloğu çıkarın ve gizlenen bir özelliğin yeniden bulunabildiğini test edin."
   },
   pilot_ground_discovery_partial: {
-    title: "PİLOT ZEMİNİ VAR, KEŞİF YARIM",
-    summary: "Dar ve geri döndürülebilir bir deney konuşulabilir. En az bir alanda kanıt hâlâ kısmi.",
-    experiment: "Tek bir görevi uyarlayın; görev başarısı, sabit ekrana dönüş ve görünmeyen capability keşfini birlikte ölçün."
+    title: "PİLOT MÜMKÜN, KEŞİF EKSİK",
+    summary: "Dar bir Generative UI pilotu mümkün. Ancak özellik keşfi ya da diğer hazırlık alanlarından en az biri hâlâ eksik; pilot kalıcı navigasyonu gölgelememeli.",
+    experiment: "Tek bir görevi uyarlayın. Görev başarısını, sabit ekrana dönüşü ve görünmeyen özelliklerin bulunmasını aynı pilotta ölçün."
   },
   controlled_trial_ground: {
-    title: "KONTROLLÜ DENEME ZEMİNİ",
-    summary: "Yanıtlarınıza göre dar, ölçülebilir ve geri döndürülebilir bir deneme için zemin var. Bu bir production onayı değildir.",
-    experiment: "Yetkileri sınırlandırılmış tek bir görevde, kalıcı alternatif yüzeyi koruyarak kontrollü deneme yapın."
+    title: "KONTROLLÜ PİLOTA HAZIRSINIZ",
+    summary: "Yanıtlarınıza göre tek görevle sınırlı, ölçülebilir ve geri alınabilir bir Generative UI pilotu için temeliniz var. Bu sonuç, ürünü canlıya alma onayı değildir.",
+    experiment: "Tek bir görev ve kullanıcı segmenti seçin. Yetkileri sınırlandırın, kalıcı ekranı koruyun ve pilotu feature flag arkasında çalıştırın."
   }
 });
 
@@ -186,27 +201,27 @@ export const ARCHETYPE_CONTENT = deepFreeze({
  * which the result object signals with `strengthIsFallback`.
  */
 export const STRENGTH_COPY = deepFreeze({
-  q1: "Değişken bir yüzey için gerçek bir kullanım farkı görüyorsunuz.",
-  q2: "Uyarlanacak iş, kozmetik değil; ürünün ana değerine yakın.",
-  q3: "Arayüzünüz yeniden kullanılabilir ve tanımlı parçalara dayanıyor.",
-  q4: "Sisteminiz yüzeyi güvenilir bağlam sinyalleriyle yönlendirebilir.",
-  q5: "Kullanıcı yüzeyi anlayabilir, değiştirebilir ve geri dönebilir.",
-  q6: "Kritik işlemler izin, önizleme ve kayıt katmanlarıyla korunuyor.",
-  q7: "Capability kataloğunuz menü yapısından bağımsız düşünülmüş.",
-  q8: "Görünmeyen işler yeniden bulunabilir kalıyor.",
-  fallback: "İlk kazanımınız net: hangi temelin önce kurulması gerektiği artık görünür."
+  q1: "Generative UI için gerçekten farklılaşan bir kullanıcı görevi tanımlamışsınız.",
+  q2: "Seçtiğiniz görev activation, retention veya revenue açısından anlamlı bir etkiye sahip.",
+  q3: "Bileşen sisteminiz, ekranı güvenli biçimde yeniden kurmak için kullanılabilir durumda.",
+  q4: "Doğru ekranı seçmek için güvenilir ve izinli bağlam sinyalleriniz var.",
+  q5: "Kullanıcı üretilen ekranı anlayabiliyor, değiştirebiliyor ve sabit ekrana dönebiliyor.",
+  q6: "Kritik işlemler izin, önizleme ve denetim kaydıyla korunuyor.",
+  q7: "Özellik kataloğunuz ana menüden bağımsız ve sistem tarafından okunabilir.",
+  q8: "Generative UI göstermese bile özellikler kullanıcı tarafından yeniden bulunabiliyor.",
+  fallback: "Generative UI hazırlığında ilk işiniz net: pilot seçmeden önce temel kullanım problemini ve güvenlik sınırlarını tanımlayın."
 });
 
 /** Recommendation copy for the two priority gaps. */
 export const RECOMMENDATION_COPY = deepFreeze({
-  q1: "Uyarlama kararını rol etiketine değil, gerçekten değişen bir kullanıcı görevine bağlayın.",
-  q2: "Ana akışı yeniden kurmadan önce düşük riskli ama tekrarlanan tek bir işi doğrulayın.",
-  q3: "Bileşenlerin girdilerini, durumlarını ve izinlerini makinece okunabilir bir katalogda tanımlayın.",
-  q4: "Yüzey kararında kullanılan bağlamı güvenilir, izinli ve güncel sinyallerle sınırlandırın.",
-  q5: "Neden değiştiğini gösterin; düzenleme, sıfırlama ve sabit yüzeye dönüş ekleyin.",
-  q6: "Kritik işlemlerde izin kontrolü, açık özet, onay ve geri alma ya da denetim kaydı kurun.",
-  q7: "Capability envanterini ana menüden bağımsız, güncel ve aranabilir hale getirin.",
-  q8: "Ekranda olmayan capability'ler için gezilebilir bir ürün içi merkez ve bağlamsal geri bulma yolu sağlayın."
+  q1: "Tek bir kullanıcı görevi seçin; rol veya ürün durumu değiştiğinde gerekli ekranın gerçekten değiştiğini kullanıcı görüşmeleriyle doğrulayın.",
+  q2: "Pilotu activation, retention veya revenue ile ilişkili tek bir ölçülebilir sonuca bağlayın.",
+  q3: "Pilot kapsamındaki bileşenlerin girdilerini, durumlarını, izinlerini ve geri dönüşlerini sistemin okuyabileceği biçimde tanımlayın.",
+  q4: "Generative UI sisteminin kullanabileceği bağlam sinyallerini güvenilir, güncel, izinli ve denetlenebilir bir listeyle sınırlandırın.",
+  q5: "Üretilen ekranın neden gösterildiğini açıklayın; düzenleme, sıfırlama ve sabit ekrana dönüş seçenekleri ekleyin.",
+  q6: "Ödeme, veri silme ve yetki değişikliği gibi işlemleri izin kontrolü, açık özet, onay ve denetim kaydı olmadan çalıştırmayın.",
+  q7: "Özellik kataloğunu ana menüden ayırın; her özellik için sahip, hedef kullanıcı, izin ve ön koşul bilgisi ekleyin.",
+  q8: "Görünmeyen özellikler için aranabilir bir ürün merkezi, bağlama uygun yönlendirme ve son kullanılanlara dönüş yolu sağlayın."
 });
 
 /**
@@ -215,15 +230,16 @@ export const RECOMMENDATION_COPY = deepFreeze({
  * Share and card copy is added in Phase 3.
  */
 export const UI_COPY = deepFreeze({
-  progress: "{current} / 8",
+  progress: "Soru {current} / 8",
   next: "Devam",
   finish: "Sonucumu göster",
-  unansweredError: "Devam etmek için bugün çalışan durumu seçin.",
+  unansweredError: "Devam etmek için ürününüzde bugün geçerli olan seçeneği işaretleyin.",
   resultError: "Sonuç hesaplanamadı. Yanıtlarınızı kontrol edip yeniden deneyin.",
-  copySuccess: "Bağlantı kopyalandı.",
-  copyFailure: "Bağlantı kopyalanamadı. Adres çubuğundaki bağlantıyı paylaşabilirsiniz.",
-  cardError: "Kart oluşturulamadı. Sonuç ekranının görüntüsünü alabilir veya bağlantıyı paylaşabilirsiniz.",
-  shareFailure: "Paylaşım açılamadı. Sonuç ekranının görüntüsünü alabilir veya bağlantıyı paylaşabilirsiniz."
+  desktopPrepared: "Post metni kopyalandı ve sonuç karnesi indirildi. LinkedIn'de görseli posta ekleyip metni yayımlayabilirsiniz.",
+  copyFailure: "Post metni kopyalanamadı. Metni kutudan elle kopyalayabilirsiniz; sonuç karneniz yine indirilecek.",
+  shareCancelled: "Paylaşım iptal edildi. Metniniz burada duruyor; hazır olduğunuzda yeniden deneyebilirsiniz.",
+  cardError: "Sonuç karnesi hazırlanamadı. Sonuç ekranının görüntüsünü alıp postunuza ekleyebilirsiniz.",
+  shareFailure: "Paylaşım ekranı açılamadı. Metniniz kaybolmadı; yeniden deneyebilir veya sonuç ekranının görüntüsünü alabilirsiniz."
 });
 
 /**
@@ -236,9 +252,9 @@ export const CARD_COPY = deepFreeze({
   eyebrow: "GENERATIVE UI CHECK-UP",
   lockupLeft: "Soft Commitment",
   lockupRight: "UserGuiding",
-  nextLabelSource: "Bir sonraki küçük deney",
-  footerStrong: "Yazarlı öz değerlendirme.",
-  footerNote: "Teknik audit değildir.",
+  nextLabelSource: "Önerilen ilk Generative UI pilotu",
+  footerStrong: "Generative UI hazırlık özeti.",
+  footerNote: "8 soruluk öz değerlendirme.",
   footerUrlTop: "games.userguiding.com/",
   footerUrlBottom: "generative-ui-checkup/"
 });
@@ -246,6 +262,12 @@ export const CARD_COPY = deepFreeze({
 /** Native share sheet copy. `{archetype}` is replaced with the archetype title. */
 export const SHARE_COPY = deepFreeze({
   title: "Generative UI Check-up sonucum",
-  text: "Benim sonucum: {archetype}. Aynı ürüne bakan ekip arkadaşım da aynı sonucu alacak mı?",
-  url: "https://games.userguiding.com/generative-ui-checkup/"
+  text: "Generative UI Check-up sonucum: {archetype}\n\nBugünkü güçlü temelim:\n{strength}\n\nİlk pilot adımım:\n{experiment}\n\nSizce ürününüz Generative UI için ne kadar hazır?\n{url}",
+  url: "https://games.userguiding.com/generative-ui-checkup/?utm_source=linkedin&utm_medium=organic_social&utm_campaign=generative_ui_checkup&utm_content={archetype_id}"
+});
+
+export const PARTNER_COPY = deepFreeze({
+  heading: "Hazırlayanlar",
+  softCommitment: "AI, startup'lar ve yeni ekonomi üzerine iki haftada bir yayımlanan bağımsız bülten.",
+  userGuiding: "Ürün ekiplerinin kod yazmadan onboarding ve ürün içi deneyimler oluşturmasını sağlayan product adoption platformu."
 });

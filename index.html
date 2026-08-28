@@ -26,7 +26,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
 
 <title>Generative UI Check-up | Soft Commitment x UserGuiding</title>
-<meta name="description" content="8 soruda arayüzünüzün değer uyumunu, sistem hazırlığını, kontrol katmanını ve keşif dayanıklılığını görün. Teknik audit değil, yazarlı bir öz değerlendirme.">
+<meta name="description" content="8 soruda ürününüzün Generative UI için kullanım senaryosunu, teknik zeminini, güvenlik sınırlarını ve keşfedilebilirliğini değerlendirin.">
 <link rel="canonical" href="https://games.userguiding.com/generative-ui-checkup/">
 
 <!-- Relative so the page works from the project subpath and from a local server. -->
@@ -36,19 +36,19 @@
 <meta property="og:site_name" content="Soft Commitment x UserGuiding">
 <meta property="og:locale" content="tr_TR">
 <meta property="og:url" content="https://games.userguiding.com/generative-ui-checkup/">
-<meta property="og:title" content="Arayüzünüz Generative UI'ya ne kadar hazır?">
-<meta property="og:description" content="8 soru. Dört ayrı profil. Yaklaşık 60 saniye.">
+<meta property="og:title" content="Ürününüz Generative UI için ne kadar hazır?">
+<meta property="og:description" content="8 soru. Dört hazırlık alanı. Size özel ilk pilot planı.">
 <!-- Absolute by requirement: crawlers do not resolve relative OG images. -->
 <meta property="og:image" content="https://games.userguiding.com/generative-ui-checkup/assets/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Arayüzünüz Generative UI'ya ne kadar hazır?">
+<meta property="og:image:alt" content="Ürününüz Generative UI için ne kadar hazır?">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Arayüzünüz Generative UI'ya ne kadar hazır?">
-<meta name="twitter:description" content="8 soru. Dört ayrı profil. Yaklaşık 60 saniye.">
+<meta name="twitter:title" content="Ürününüz Generative UI için ne kadar hazır?">
+<meta name="twitter:description" content="8 soru. Dört hazırlık alanı. Size özel ilk pilot planı.">
 <meta name="twitter:image" content="https://games.userguiding.com/generative-ui-checkup/assets/og-image.png">
-<meta name="twitter:image:alt" content="Arayüzünüz Generative UI'ya ne kadar hazır?">
+<meta name="twitter:image:alt" content="Ürününüz Generative UI için ne kadar hazır?">
 
 <link rel="stylesheet" href="./css/app.css">
 </head>
@@ -66,12 +66,12 @@
     <section class="screen" id="screen-landing" aria-labelledby="landing-heading">
       <div class="landing__copy">
         <p class="eyebrow">GENERATIVE UI CHECK-UP</p>
-        <h1 class="display" id="landing-heading" tabindex="-1">Arayüzünüz Generative UI'ya ne kadar hazır?</h1>
-        <p class="lede">8 soru. Dört ayrı profil. Çünkü üretilebilir olmakla kontrollü ve bulunabilir olmak aynı şey değil.</p>
+        <h1 class="display" id="landing-heading" tabindex="-1">Ürününüz Generative UI için ne kadar hazır?</h1>
+        <p class="lede">8 soruda kullanım senaryonuzu, teknik zemininizi, güvenlik sınırlarınızı ve özelliklerin keşfedilebilirliğini değerlendirin. Sonunda Generative UI için nereden başlamanız gerektiğini görün.</p>
         <p class="actions">
           <button class="button button--primary" type="button" data-action="start">Check-up'ı başlat</button>
         </p>
-        <p class="meta">Yaklaşık 60 saniye · Ürün incelemesi değildir · Ham yanıtlar gönderilmez</p>
+        <p class="meta">Yaklaşık 2 dakika · Ürününüzde bugün çalışan durumu yanıtlayın · Ham yanıtlar cihazınızdan çıkmaz</p>
         <p class="actions actions--quiet">
           <button class="link" type="button" data-action="methodology" data-source="landing">Nasıl hesaplanıyor?</button>
         </p>
@@ -79,14 +79,14 @@
       <div class="cover" aria-hidden="true">
         <img class="cover__mark" src="./assets/checkup-mark.svg" alt="" width="420" height="420">
         <span class="note note--one">8 SORU</span>
-        <span class="note note--two">4 PROFİL</span>
+        <span class="note note--two">4 ALAN</span>
       </div>
     </section>
 
     <!-- ======================================================= instructions -->
     <section class="screen" id="screen-instructions" aria-labelledby="instructions-heading" hidden>
-      <h1 class="title" id="instructions-heading" tabindex="-1">Bugünkü ürünü cevaplayın.</h1>
-      <p class="lede">Roadmap'i veya “yapabiliriz” dediğiniz şeyleri saymayın. İki seçenek arasında kalırsanız doğrulayabildiğiniz daha düşük seçeneği işaretleyin.</p>
+      <h1 class="title" id="instructions-heading" tabindex="-1">Planları değil, bugünkü ürünü değerlendirin.</h1>
+      <p class="lede">Roadmap'teki planları veya “istersek yaparız” dediğiniz işleri hesaba katmayın. İki seçenek arasında kalırsanız kanıtlayabildiğiniz daha düşük seçeneği işaretleyin.</p>
       <p class="actions">
         <button class="button button--primary" type="button" data-action="begin">Anladım, başlayalım</button>
       </p>
@@ -105,7 +105,7 @@
         <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span>
       </div>
       <div class="progress">
-        <p class="progress__count" id="progress-count">1 / 8</p>
+        <p class="progress__count" id="progress-count">Soru 1 / 8</p>
         <p class="progress__dimension" id="progress-dimension"></p>
       </div>
 
@@ -141,56 +141,49 @@
       <p class="lede" id="result-summary"></p>
 
       <section class="block" aria-labelledby="profiles-heading">
-        <h2 class="block__title" id="profiles-heading">Dört ayrı profil</h2>
+        <h2 class="block__title" id="profiles-heading">Generative UI hazırlık profiliniz</h2>
         <ul class="profiles" id="result-profiles"></ul>
       </section>
 
       <section class="block" aria-labelledby="strength-heading">
-        <h2 class="block__title" id="strength-heading">Güçlü tarafınız</h2>
+        <h2 class="block__title" id="strength-heading">Bugünkü güçlü temeliniz</h2>
         <p class="block__body" id="result-strength"></p>
       </section>
 
       <section class="block" aria-labelledby="gaps-heading">
-        <h2 class="block__title" id="gaps-heading">Önce bunları güçlendirin</h2>
+        <h2 class="block__title" id="gaps-heading">Önce kapatmanız gereken iki açık</h2>
         <ol class="gaps" id="result-gaps"></ol>
       </section>
 
       <section class="block" aria-labelledby="experiment-heading">
-        <h2 class="block__title" id="experiment-heading">Bir sonraki küçük deney</h2>
+        <h2 class="block__title" id="experiment-heading">Önerilen ilk Generative UI pilotu</h2>
         <p class="block__body" id="result-experiment"></p>
       </section>
 
       <div class="share" id="result-share-mount">
         <div class="share__actions">
-          <button class="button button--primary" type="button" data-action="share-native" id="share-native" hidden>Sonucumu paylaş<span class="button__glyph" aria-hidden="true">↗</span></button>
-          <button class="button button--primary" type="button" data-action="share-download" id="share-download">Sonuç kartını indir<span class="button__glyph" aria-hidden="true">↓</span></button>
-          <button class="button button--quiet" type="button" data-action="share-copy" id="share-copy">Ekip arkadaşına gönder</button>
+          <button class="button button--primary" type="button" data-action="share-open" id="share-open">Sonucumu paylaş<span class="button__glyph" aria-hidden="true">↗</span></button>
         </div>
         <p class="share__status" id="share-status" role="status"></p>
       </div>
-
-      <section class="feedback" id="result-feedback" aria-labelledby="feedback-heading">
-        <h2 class="block__title" id="feedback-heading">Bu sonuç ürününüzü ne kadar doğru tarif etti?</h2>
-        <div class="feedback__choices" id="feedback-choices">
-          <button class="button button--chip" type="button" data-feedback="yes">Evet</button>
-          <button class="button button--chip" type="button" data-feedback="partial">Kısmen</button>
-          <button class="button button--chip" type="button" data-feedback="no">Hayır</button>
-        </div>
-        <p class="feedback__thanks" id="feedback-thanks" tabindex="-1" hidden>Teşekkürler. Bu geri bildirim soru setini geliştirmemize yardımcı olacak.</p>
-      </section>
-
-      <p class="disclaimer">Bu sonuç, verdiğiniz yanıtlara dayanan Soft Commitment x UserGuiding düşünce çerçevesidir. Teknik denetim, sektör standardı, benchmark veya ürününüzün Generative UI kullandığına dair doğrulama değildir. Ürününüze bağlanmaz; kod, dashboard veya müşteri verisi incelemez.</p>
 
       <p class="actions actions--quiet">
         <button class="link" type="button" data-action="methodology" data-source="result">Metodolojiyi gör</button>
         <button class="link" type="button" data-action="restart">Yeniden başla</button>
       </p>
 
-      <!-- Rendered only when a Soft Commitment destination is configured at launch time. -->
-      <aside class="outbound" id="result-outbound" aria-labelledby="outbound-heading" hidden>
-        <h2 class="block__title" id="outbound-heading">Menü kaybolursa ürün kendini nasıl anlatır?</h2>
-        <p class="block__body">Generative UI'nın keşif sorununu Soft Commitment serisinde takip edin.</p>
-        <a class="button button--quiet" id="result-outbound-link" rel="noopener" data-action="outbound">Soft Commitment'ta devam et</a>
+      <aside class="partners" aria-labelledby="partners-heading">
+        <h2 class="block__title" id="partners-heading">Hazırlayanlar</h2>
+        <div class="partners__grid">
+          <a class="partner" href="https://www.softcommitment.com/?utm_source=generative_ui_checkup&amp;utm_medium=referral&amp;utm_campaign=generative_ui_checkup&amp;utm_content=soft_commitment_logo" target="_blank" rel="noopener" data-action="partner" data-destination="soft_commitment">
+            <strong class="partner__wordmark" lang="en">Soft Commitment</strong>
+            <span>AI, startup'lar ve yeni ekonomi üzerine iki haftada bir yayımlanan bağımsız bülten.</span>
+          </a>
+          <a class="partner" href="https://userguiding.com/?utm_source=generative_ui_checkup&amp;utm_medium=referral&amp;utm_campaign=generative_ui_checkup&amp;utm_content=userguiding_logo" target="_blank" rel="noopener" data-action="partner" data-destination="userguiding">
+            <strong class="partner__wordmark partner__wordmark--ug" lang="en">UserGuiding</strong>
+            <span>Ürün ekiplerinin kod yazmadan onboarding ve ürün içi deneyimler oluşturmasını sağlayan product adoption platformu.</span>
+          </a>
+        </div>
       </aside>
 
     </section>
@@ -198,7 +191,7 @@
   </main>
 
   <footer class="colophon">
-    <p>Soft Commitment x UserGuiding · Generative UI üzerine editoryal düşünce çerçevesi</p>
+    <p>Soft Commitment x UserGuiding iş birliğiyle hazırlandı.</p>
   </footer>
 
 </div>
@@ -206,13 +199,32 @@
 <dialog class="methodology" id="methodology" aria-labelledby="methodology-heading">
   <div class="methodology__inner">
     <h2 class="methodology__title" id="methodology-heading" tabindex="-1">Bu sonuç nasıl hesaplanıyor?</h2>
-    <p>Check-up, verdiğiniz sekiz yanıttan dört ayrı 0–6 profil çıkarır: değer uyumu, sistem hazırlığı, kontrol ve güvenlik, keşif dayanıklılığı. Güçlü bir alan zayıf bir alanı kapatmaz. Sonuç arketipi bu nedenle tek bir toplam puandan değil, profil eşiklerinden belirlenir.</p>
-    <p>Sorular ve eşikler Soft Commitment x UserGuiding tarafından bu çalışma için yazılmış editoryal bir düşünce çerçevesidir. Kalibre edilmiş sektör standardı veya benchmark değildir.</p>
-    <p>Ürününüze bağlanmayız; kod, dashboard, müşteri verisi veya şirket bilgisi incelemeyiz. Ham yanıtlar tarayıcıda geçici olarak tutulur ve analiz araçlarına gönderilmez. Ölçüm için yalnız soru numarası, tamamlanma, sonuç arketipi ve kaba profil bantları gibi anonim olaylar kullanılabilir.</p>
-    <p>Sonuç teknik denetim, sertifika, production onayı veya ürününüzün Generative UI kullandığına dair doğrulama değildir.</p>
+    <p>Sekiz soru, Generative UI hazırlığının dört ayrı alanını ölçer: kullanım senaryosu, teknik hazırlık, kontrol ve güvenlik, keşfedilebilirlik. Her alan 0 ile 6 arasında ayrı değerlendirilir. Güçlü bir alan başka bir alandaki açığı kapatmaz; bu yüzden tek bir toplam puan göstermiyoruz.</p>
+    <p>Sonuç türünüz, dört alandaki eşiklerin belirli bir sırayla değerlendirilmesiyle oluşur. Ardından en güçlü yanıtınız bugünkü temelinizi, en düşük iki yanıtınız ise önce kapatmanız gereken hazırlık açıklarını belirler.</p>
+    <p>Sorular Soft Commitment ve UserGuiding tarafından bu çalışma için yazıldı. Sonuç, sektör karşılaştırması veya otomatik bir ürün incelemesi değildir; ekibinizin Generative UI hazırlığını aynı başlıklar altında konuşabilmesi için tasarlanmış bir öz değerlendirmedir.</p>
+    <p>Ürününüze bağlanmıyoruz; kod, dashboard, müşteri verisi veya şirket bilgisi incelemiyoruz. Yanıtlar yalnız bu tarayıcı sekmesinde tutulur. Ölçüm açıksa yalnız soru numarası, tamamlanma ve sonuç türü gibi yanıttan bağımsız olaylar kaydedilir.</p>
     <p class="actions">
       <button class="button button--primary" type="button" data-action="methodology-close">Kapat</button>
     </p>
+  </div>
+</dialog>
+
+<dialog class="shareprep" id="share-dialog" aria-labelledby="share-dialog-heading">
+  <div class="shareprep__inner">
+    <div class="shareprep__copy">
+      <p class="eyebrow">LINKEDIN PAYLAŞIMI</p>
+      <h2 class="shareprep__title" id="share-dialog-heading" tabindex="-1">LinkedIn paylaşımınızı hazırlayın</h2>
+      <p class="shareprep__intro">Aşağıdaki metni dilediğiniz gibi düzenleyin. Sonuç karneniz ve takip bağlantınız paylaşım için birlikte hazırlanacak.</p>
+      <label class="shareprep__label" for="share-draft">LinkedIn post metni</label>
+      <textarea class="shareprep__draft" id="share-draft" rows="10"></textarea>
+      <p class="shareprep__note" id="share-note"></p>
+      <p class="shareprep__status" id="share-dialog-status" role="status"></p>
+      <div class="shareprep__actions">
+        <button class="button button--primary" type="button" data-action="share-confirm" id="share-confirm"></button>
+        <button class="link" type="button" data-action="share-close">Kapat</button>
+      </div>
+    </div>
+    <div class="shareprep__preview" id="share-preview" aria-label="Sonuç karnesi önizlemesi"></div>
   </div>
 </dialog>
 

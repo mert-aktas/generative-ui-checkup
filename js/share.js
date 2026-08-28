@@ -14,14 +14,15 @@
  * read back through getBoundingClientRect. Codex owns the art direction; this file only
  * reproduces it.
  *
- * Nothing here contacts the network. Sharing always uses the fixed canonical URL and
- * never serialises answers, scores or archetype into it.
+ * Nothing here contacts the network. Sharing uses a campaign URL with only the coarse
+ * archetype id; answers, profile scores and identity are never serialised into it.
  */
 
 import {
   PROFILE_NAMES,
   BAND_LABELS,
   ARCHETYPE_CONTENT,
+  STRENGTH_COPY,
   CARD_COPY,
   SHARE_COPY
 } from './questions.js';
@@ -31,8 +32,31 @@ import { ARCHETYPE_IDS, PROFILE_DEFINITIONS, PROFILE_MAX } from './scoring.js';
 /** The only URL this application ever shares. It carries no state, ever. */
 export const CANONICAL_URL = 'https://games.userguiding.com/generative-ui-checkup/';
 
+/** LinkedIn composer. The post draft itself carries the tracked Check-up URL. */
+export const LINKEDIN_COMPOSER_URL = 'https://www.linkedin.com/feed/?shareActive=true';
+
 /** Deterministic, safe download name. */
 export const CARD_FILENAME = 'generative-ui-checkup-sonucum.png';
+
+/** A result-specific campaign URL that contains no answer, score or identity data. */
+export function trackedShareUrl(result) {
+  if (!ARCHETYPE_CONTENT[result.archetype]) throw new Error('unknown archetype');
+  return SHARE_COPY.url.replace('{archetype_id}', result.archetype);
+}
+
+/** Editable LinkedIn draft built only from public result copy and a coarse archetype id. */
+export function buildLinkedInDraft(result) {
+  const archetype = ARCHETYPE_CONTENT[result.archetype];
+  if (!archetype) throw new Error('unknown archetype');
+  const strength = result.strengthIsFallback
+    ? STRENGTH_COPY.fallback
+    : STRENGTH_COPY[result.strengthQuestionId];
+  return SHARE_COPY.text
+    .replace('{archetype}', archetype.title)
+    .replace('{strength}', strength)
+    .replace('{experiment}', archetype.experiment)
+    .replace('{url}', trackedShareUrl(result));
+}
 
 /* ------------------------------------------------------------------ geometry */
 
@@ -49,7 +73,7 @@ const GRID = 39.96;
  * Minimum type size per role, from DESIGN-SYSTEM.md.
  *
  * `micro` covers labels and the compact band/score pair; `body` covers result-bearing and
- * explanatory copy; `footer` covers the disclaimer and canonical URL, which must stay
+ * explanatory copy; `footer` covers the preparation note and canonical URL, which must stay
  * readable rather than becoming legal dust.
  */
 export const TYPE_FLOORS = Object.freeze({ micro: 20, body: 32, footer: 28 });
@@ -82,7 +106,7 @@ const BODY_TOP = 178.73;
 
 const INDEX = { size: 20, tracking: 2.4, padX: 13.1, padY: 7.49, line: 23 };
 const TITLE = { weight: 700, size: 76, line: 70.68, tracking: -3.8, maxWidth: 767.52, gapAfter: 18.72 };
-const SUMMARY = { size: 34, line: 45.9, maxWidth: 823.67, gapAfter: 37.44 };
+const SUMMARY = { size: 34, line: 45.9, maxWidth: 823.67, gapAfter: 20 };
 
 const PANEL = {
   pad: 30,
@@ -97,8 +121,8 @@ const PANEL = {
 };
 
 const NEXT = {
-  gapBefore: 32.75,
-  padY: 28,
+  gapBefore: 18,
+  padY: 22,
   padX: 30,
   labelSize: 20,
   labelLine: 23,
@@ -614,19 +638,18 @@ export async function downloadCard(result) {
  *
  * A rejected share is not a failed card. AbortError is an ordinary cancellation; anything
  * else becomes a ShareSheetError so the caller can say the right thing and keep the
- * download and copy-link routes offered.
+ * editable draft available for another attempt.
  *
  * @returns {Promise<'shared' | 'cancelled'>}
  */
-export async function shareCard(result) {
+export async function shareCard(result, draft = buildLinkedInDraft(result)) {
   const blob = await renderCardBlob(result);
   const file = new File([blob], CARD_FILENAME, { type: 'image/png' });
   try {
     await navigator.share({
       files: [file],
       title: SHARE_COPY.title,
-      text: SHARE_COPY.text.replace('{archetype}', ARCHETYPE_CONTENT[result.archetype].title),
-      url: CANONICAL_URL
+      text: draft
     });
     return 'shared';
   } catch (error) {
@@ -636,9 +659,14 @@ export async function shareCard(result) {
 }
 
 /** Copy the canonical URL. Never the staged or current URL. */
-export async function copyCanonicalUrl() {
+export async function copyText(value) {
   if (typeof navigator === 'undefined' || !navigator.clipboard || !navigator.clipboard.writeText) {
     throw new Error('clipboard unavailable');
   }
-  await navigator.clipboard.writeText(CANONICAL_URL);
+  await navigator.clipboard.writeText(value);
+}
+
+/** Copy the canonical URL. Retained for staged-link sanitation tests and compatibility. */
+export async function copyCanonicalUrl() {
+  await copyText(CANONICAL_URL);
 }

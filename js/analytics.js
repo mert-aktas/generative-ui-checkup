@@ -91,7 +91,7 @@ const SCHEMA = Object.freeze({
       game: oneOf([GAME]),
       archetype: isArchetype,
       // Coarse band only. An exact duration is never sent.
-      completion_time_band: oneOf(['under_30', '30_45', '46_60', 'over_60'])
+      completion_time_band: oneOf(['under_60', '60_90', '91_120', 'over_120'])
     },
     once: true
   },
@@ -108,11 +108,10 @@ const SCHEMA = Object.freeze({
   },
   guc_methodology_open: { params: { source: oneOf(['landing', 'result']) } },
   guc_card_download: { params: { archetype: isArchetype } },
-  share_click: { params: { game: oneOf([GAME]), method: oneOf(['native', 'copy', 'download']) } },
-  guc_share_success: { params: { method: oneOf(['native', 'copy']), archetype: isArchetype } },
+  share_click: { params: { game: oneOf([GAME]), method: oneOf(['native', 'desktop']) } },
+  guc_share_success: { params: { method: oneOf(['native', 'desktop']), archetype: isArchetype } },
   guc_share_cancel: { params: { archetype: isArchetype } },
-  guc_feedback: { params: { rating: oneOf(['yes', 'partial', 'no']), archetype: isArchetype } },
-  cta_click: { params: { destination: oneOf(['soft_commitment']), archetype: isArchetype } },
+  cta_click: { params: { destination: oneOf(['soft_commitment', 'userguiding']), archetype: isArchetype } },
   guc_restart: { params: { archetype: isArchetype } },
   guc_error: { params: { area: oneOf(['scoring', 'card', 'clipboard']) } }
 });
@@ -251,10 +250,10 @@ export function markStart(now) {
 export function completionBand(now) {
   if (startedAt === null) return null;
   const seconds = ((typeof now === 'number' ? now : Date.now()) - startedAt) / 1000;
-  if (seconds < 30) return 'under_30';
-  if (seconds <= 45) return '30_45';
-  if (seconds <= 60) return '46_60';
-  return 'over_60';
+  if (seconds < 60) return 'under_60';
+  if (seconds <= 90) return '60_90';
+  if (seconds <= 120) return '91_120';
+  return 'over_120';
 }
 
 /* ------------------------------------------------------- linkedin stage urls */
@@ -267,8 +266,8 @@ export function completionBand(now) {
  * unknown parameter someone appended cannot survive into a later request. Answers,
  * scores, bands, archetype and identity are never written here.
  *
- * The share module always uses its own fixed canonical URL, so a staged address can never
- * become the copied or shared link.
+ * The share module builds its own allowlisted campaign URL, so a staged address can never
+ * become the post link.
  */
 /**
  * Strip stale analytics state from the address bar on boot.

@@ -8,8 +8,8 @@
  * Answers live in this module's memory only. Nothing here writes to localStorage,
  * sessionStorage, cookies, the URL or the network, and reloading starts over.
  *
- * Phase 3 adds the Canvas result card and sharing; Phase 4 adds analytics. Neither is
- * wired up here yet.
+ * The Canvas result card, LinkedIn preparation flow, partner links and defensive analytics
+ * adapter are wired here without changing the local-only answer contract.
  */
 
 import {
@@ -44,19 +44,13 @@ import {
   buildCardModel,
   downloadCard,
   shareCard,
-  copyCanonicalUrl,
+  buildLinkedInDraft,
+  copyText,
   supportsFileShare,
   ShareSheetError,
-  CANONICAL_URL
+  CANONICAL_URL,
+  LINKEDIN_COMPOSER_URL
 } from './share.js';
-
-/**
- * Launch-time configuration. COPY-TR.md deliberately leaves the Soft Commitment
- * destination unset and forbids guessing it, so the outbound block stays out of the
- * document until a real URL is supplied here. An unset value renders no link at all
- * rather than a dead one.
- */
-const SOFT_COMMITMENT_URL = null;
 
 /* ------------------------------------------------------------------ state */
 
@@ -68,8 +62,7 @@ const state = {
   screen: 'landing',
   questionIndex: 0,
   answers: emptyAnswers(),
-  result: null,
-  feedback: null
+  result: null
 };
 
 /* -------------------------------------------------------------------- dom */
@@ -102,18 +95,19 @@ const dom = {
   next: byId('question-next'),
   resultIndex: byId('result-index'),
   resultSummary: byId('result-summary'),
-  shareNative: byId('share-native'),
-  shareDownload: byId('share-download'),
-  shareCopy: byId('share-copy'),
+  shareOpen: byId('share-open'),
   shareStatus: byId('share-status'),
+  shareDialog: byId('share-dialog'),
+  shareDialogHeading: byId('share-dialog-heading'),
+  shareDraft: byId('share-draft'),
+  shareNote: byId('share-note'),
+  shareDialogStatus: byId('share-dialog-status'),
+  shareConfirm: byId('share-confirm'),
+  sharePreview: byId('share-preview'),
   resultProfiles: byId('result-profiles'),
   resultStrength: byId('result-strength'),
   resultGaps: byId('result-gaps'),
   resultExperiment: byId('result-experiment'),
-  feedbackChoices: byId('feedback-choices'),
-  feedbackThanks: byId('feedback-thanks'),
-  outbound: byId('result-outbound'),
-  outboundLink: byId('result-outbound-link'),
   methodology: byId('methodology'),
   methodologyHeading: byId('methodology-heading')
 };
@@ -298,7 +292,6 @@ function finish() {
   }
 
   state.result = result;
-  state.feedback = null;
   renderResult();
   showScreen('result');
 
@@ -398,24 +391,7 @@ function renderResult() {
 
   dom.resultExperiment.textContent = archetype.experiment;
 
-  resetFeedback();
   resetShare();
-  renderOutbound();
-}
-
-function resetFeedback() {
-  dom.feedbackChoices.hidden = false;
-  dom.feedbackThanks.hidden = true;
-}
-
-function renderOutbound() {
-  const configured = typeof SOFT_COMMITMENT_URL === 'string' && SOFT_COMMITMENT_URL.length > 0;
-  if (configured) {
-    dom.outboundLink.href = SOFT_COMMITMENT_URL;
-  } else {
-    dom.outboundLink.removeAttribute('href');
-  }
-  dom.outbound.hidden = !configured;
 }
 
 /* ----------------------------------------------------------------- sharing */
@@ -429,96 +405,113 @@ function setShareStatus(message, tone) {
 /**
  * Reset the share block for a freshly rendered result.
  *
- * Native file sharing leads when the browser supports it, and download drops to the quiet
- * treatment. Where it is unsupported, download leads. Copy-link is always present, so no
- * route ever ends at a dead button.
+ * The public result exposes one share action. The dialog then adapts that action to native
+ * file sharing or a desktop package of editable text, downloaded card and LinkedIn composer.
  */
 function resetShare() {
   setShareStatus('');
-  const native = supportsFileShare();
-  dom.shareNative.hidden = !native;
-  dom.shareDownload.classList.toggle('button--primary', !native);
-  dom.shareDownload.classList.toggle('button--quiet', native);
-  for (const button of [dom.shareNative, dom.shareDownload, dom.shareCopy]) button.disabled = false;
+  dom.shareOpen.disabled = false;
+  dom.shareDialogStatus.textContent = '';
 }
 
 function shareBusy(busy) {
-  for (const button of [dom.shareNative, dom.shareDownload, dom.shareCopy]) button.disabled = busy;
+  dom.shareOpen.disabled = busy;
+  dom.shareConfirm.disabled = busy;
 }
 
 /**
- * Every share route starts here, so intent is recorded identically for all three.
+ * Both platform-specific share routes start here, so intent is recorded consistently.
  *
  * It fires when the action begins, not when it finishes, so a cancelled sheet, a failed
  * clipboard write and a successful download are all counted as the same intent. The staged
- * address is for the Insight Tag only; the share module keeps its own fixed canonical URL,
- * so nothing here can leak into what gets shared.
+ * address is for the Insight Tag only. The share module builds a separate allowlisted UTM
+ * URL and never copies the staged address into the post.
  *
- * @param {'native'|'download'|'copy'} method
+ * @param {'native'|'desktop'} method
  */
 function beginShareIntent(method) {
   track('share_click', { game: GAME, method });
   stage('share');
 }
 
-async function handleDownload() {
+function openShareDialog() {
   if (!state.result) return;
-  shareBusy(true);
-  beginShareIntent('download');
+  dom.shareDraft.value = buildLinkedInDraft(state.result);
+  dom.shareDialogStatus.textContent = '';
+  dom.shareDialogStatus.removeAttribute('data-tone');
+  const native = supportsFileShare();
+  dom.shareConfirm.textContent = native ? 'Paylaşım ekranını aç' : 'Metni ve karneyi hazırla';
+  dom.shareNote.textContent = native
+    ? "Cihazınız destekliyorsa metin ve sonuç karnesi paylaşım ekranına birlikte aktarılır. LinkedIn'i seçtikten sonra postu düzenleyebilir veya olduğu gibi yayımlayabilirsiniz."
+    : "Masaüstü tarayıcıları LinkedIn'e görseli otomatik yükleyemez. Devam ettiğinizde post metni kopyalanır, sonuç karnesi indirilir ve LinkedIn açılır. İndirilen görseli posta eklemeniz gerekir.";
+
   try {
-    await downloadCard(state.result);
-    setShareStatus('');
-    track('guc_card_download', { archetype: state.result.archetype });
+    const canvas = renderCard(state.result);
+    canvas.setAttribute('aria-hidden', 'true');
+    dom.sharePreview.replaceChildren(canvas);
   } catch {
     setShareStatus(UI_COPY.cardError, 'error');
     track('guc_error', { area: 'card' });
-  } finally {
-    shareBusy(false);
+    return;
   }
+  dom.shareDialog.showModal();
+  dom.shareDialogHeading.focus({ preventScroll: true });
 }
 
-async function handleNativeShare() {
+function closeShareDialog() {
+  if (dom.shareDialog.open) dom.shareDialog.close();
+}
+
+async function handleShareConfirm() {
   if (!state.result) return;
   shareBusy(true);
-  beginShareIntent('native');
+  const native = supportsFileShare();
+  beginShareIntent(native ? 'native' : 'desktop');
   try {
-    const outcome = await shareCard(state.result);
-    // A cancelled sheet is an ordinary outcome and says nothing to the reader.
-    setShareStatus('');
-    if (outcome === 'shared') {
-      track('guc_share_success', { method: 'native', archetype: state.result.archetype });
-    } else {
-      track('guc_share_cancel', { archetype: state.result.archetype });
+    if (native) {
+      const outcome = await shareCard(state.result, dom.shareDraft.value);
+      if (outcome === 'shared') {
+        dom.shareDialogStatus.textContent = '';
+        closeShareDialog();
+        setShareStatus('');
+        track('guc_share_success', { method: 'native', archetype: state.result.archetype });
+      } else {
+        dom.shareDialogStatus.textContent = UI_COPY.shareCancelled;
+        track('guc_share_cancel', { archetype: state.result.archetype });
+      }
+      return;
     }
+
+    window.open(LINKEDIN_COMPOSER_URL, '_blank', 'noopener,noreferrer');
+    let copied = true;
+    try {
+      await copyText(dom.shareDraft.value);
+    } catch {
+      copied = false;
+      track('guc_error', { area: 'clipboard' });
+    }
+    await downloadCard(state.result);
+    const message = copied ? UI_COPY.desktopPrepared : UI_COPY.copyFailure;
+    dom.shareDialogStatus.textContent = message;
+    if (copied) dom.shareDialogStatus.removeAttribute('data-tone');
+    else dom.shareDialogStatus.dataset.tone = 'error';
+    setShareStatus(message, copied ? undefined : 'error');
+    track('guc_card_download', { archetype: state.result.archetype });
+    track('guc_share_success', { method: 'desktop', archetype: state.result.archetype });
   } catch (error) {
-    // The sheet refusing the card is a different failure from the card not being drawn,
-    // so it gets the share-specific message. Download and copy-link stay available either
-    // way; shareBusy(false) below re-enables every route.
     const sheetFailed = error instanceof ShareSheetError;
-    setShareStatus(sheetFailed ? UI_COPY.shareFailure : UI_COPY.cardError, 'error');
-    // ANALYTICS.md allows guc_error only for scoring, card and clipboard, so a refused
-    // sheet is not reported as an error event.
+    const message = sheetFailed ? UI_COPY.shareFailure : UI_COPY.cardError;
+    dom.shareDialogStatus.textContent = message;
+    dom.shareDialogStatus.dataset.tone = 'error';
     if (!sheetFailed) track('guc_error', { area: 'card' });
   } finally {
     shareBusy(false);
   }
 }
 
-async function handleCopy() {
-  shareBusy(true);
-  beginShareIntent('copy');
-  try {
-    await copyCanonicalUrl();
-    setShareStatus(UI_COPY.copySuccess);
-    track('guc_share_success', {
-      method: 'copy',
-      archetype: state.result ? state.result.archetype : undefined
-    });
-  } catch {
-    setShareStatus(UI_COPY.copyFailure, 'error');
-    track('guc_error', { area: 'clipboard' });
-  } finally {
-    shareBusy(false);
+function restoreShareTrigger() {
+  if (dom.shareOpen && document.contains(dom.shareOpen)) {
+    dom.shareOpen.focus({ preventScroll: true });
   }
 }
 
@@ -528,7 +521,6 @@ function restart() {
   state.questionIndex = 0;
   state.answers = emptyAnswers();
   state.result = null;
-  state.feedback = null;
 
   dom.choices.replaceChildren();
   clearError();
@@ -603,18 +595,18 @@ function handleAction(action, trigger) {
     case 'methodology-close':
       closeMethodology();
       break;
-    case 'share-download':
-      handleDownload();
+    case 'share-open':
+      openShareDialog();
       break;
-    case 'share-native':
-      handleNativeShare();
+    case 'share-confirm':
+      handleShareConfirm();
       break;
-    case 'share-copy':
-      handleCopy();
+    case 'share-close':
+      closeShareDialog();
       break;
-    case 'outbound':
+    case 'partner':
       track('cta_click', {
-        destination: 'soft_commitment',
+        destination: trigger.dataset.destination,
         archetype: state.result ? state.result.archetype : undefined
       });
       stage('cta');
@@ -645,21 +637,8 @@ function bindEvents() {
     advance();
   });
 
-  dom.feedbackChoices.addEventListener('click', (event) => {
-    if (!(event.target instanceof Element)) return;
-    const choice = event.target.closest('[data-feedback]');
-    if (!choice) return;
-    state.feedback = choice.dataset.feedback;
-    track('guc_feedback', {
-      rating: choice.dataset.feedback,
-      archetype: state.result ? state.result.archetype : undefined
-    });
-    dom.feedbackChoices.hidden = true;
-    dom.feedbackThanks.hidden = false;
-    dom.feedbackThanks.focus({ preventScroll: true });
-  });
-
   dom.methodology.addEventListener('close', restoreMethodologyTrigger);
+  dom.shareDialog.addEventListener('close', restoreShareTrigger);
 
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
@@ -703,4 +682,3 @@ normalizeStageUrl();
 // Reading a freshly loaded page should start at the top, not at a focused heading.
 document.documentElement.dataset.screen = state.screen;
 bindEvents();
-renderOutbound();
