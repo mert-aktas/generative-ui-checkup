@@ -671,16 +671,6 @@ summary:focus-visible,
   gap: 12px;
 }
 
-.share__status {
-  margin: 12px 0 0;
-  min-height: 1px;
-  font-size: 15px;
-  font-weight: 650;
-  color: var(--body);
-}
-
-.share__status[data-tone="error"] { color: var(--coral); font-weight: 700; }
-
 /* ------------------------------------------------------------- partners */
 
 .partners {
@@ -888,3 +878,136 @@ summary:focus-visible,
   .shareprep__preview { max-width: 320px; order: -1; }
   .shareprep__draft { min-height: 220px; }
 }
+
+/* ------------------------------------------------------------ task picker */
+
+.taskpick {
+  margin: 0 0 34px;
+  padding: 20px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper-hi);
+}
+
+.taskpick__grouplabel {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.taskpick__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 22px;
+}
+
+.taskpick__preset {
+  /* 44px is the floor; 46 keeps sub-pixel layout rounding from dipping under it. */
+  min-height: 46px;
+  max-width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: left;
+  overflow-wrap: break-word;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.taskpick__preset:hover { border-color: var(--ink); background: var(--white); }
+
+.taskpick__label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+
+.taskpick__input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+}
+
+.taskpick__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin-top: 8px;
+}
+
+.taskpick__helper {
+  flex: 1 1 14ch;
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.taskpick__counter {
+  margin: 0;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+.taskpick__counter[data-over="true"] { color: var(--coral); font-weight: 800; }
+
+.subtitle {
+  margin: 0 0 14px;
+  font-size: clamp(19px, 3.2vw, 24px);
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -.02em;
+  overflow-wrap: break-word;
+}
+
+/* ---------------------------------------------------------- task context */
+
+/* The task the whole run is about, shown above every question and on the result. */
+.taskcontext {
+  margin: 0 0 22px;
+  padding: 12px 14px;
+  border-left: 4px solid var(--blue);
+  background: var(--blue-wash);
+}
+
+.taskcontext__label {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--blue-deep);
+}
+
+.taskcontext__value {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--ink);
+  /* A user string can be one unbroken 80-character word. */
+  overflow-wrap: anywhere;
+}
+
+.block__body--scope { margin-bottom: 10px; font-weight: 700; }

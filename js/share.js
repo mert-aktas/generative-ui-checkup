@@ -1,5 +1,5 @@
 /**
- * Generative UI Check-up: 1080 x 1350 result card, download and sharing.
+ * Generative UI Check-up: 1080 x 1350 result card, clipboard and sharing.
  *
  * The card is drawn with native Canvas from the same frozen result object the result
  * screen renders, and from the same content maps in ./questions.js. No display string is
@@ -24,7 +24,8 @@ import {
   ARCHETYPE_CONTENT,
   STRENGTH_COPY,
   CARD_COPY,
-  SHARE_COPY
+  SHARE_COPY,
+  normalizeTask
 } from './questions.js';
 
 import { ARCHETYPE_IDS, PROFILE_DEFINITIONS, PROFILE_MAX } from './scoring.js';
@@ -32,30 +33,67 @@ import { ARCHETYPE_IDS, PROFILE_DEFINITIONS, PROFILE_MAX } from './scoring.js';
 /** The only URL this application ever shares. It carries no state, ever. */
 export const CANONICAL_URL = 'https://games.userguiding.com/generative-ui-checkup/';
 
-/** LinkedIn composer. The post draft itself carries the tracked Check-up URL. */
+/**
+ * LinkedIn composer. The post draft itself carries the tracked Check-up URL.
+ *
+ * The `text` query parameter is undocumented composer behaviour, not a supported LinkedIn
+ * API. It works today and may stop working without notice, so every caller must remain
+ * useful if LinkedIn ignores it: the draft stays in the editable textarea, the card stays
+ * on the clipboard, and the user can paste both by hand.
+ */
 export const LINKEDIN_COMPOSER_URL = 'https://www.linkedin.com/feed/?shareActive=true';
 
-/** Deterministic, safe download name. */
+/** Deterministic, safe file name for the shared PNG. */
 export const CARD_FILENAME = 'generative-ui-checkup-sonucum.png';
 
-/** A result-specific campaign URL that contains no answer, score or identity data. */
-export function trackedShareUrl(result) {
-  if (!ARCHETYPE_CONTENT[result.archetype]) throw new Error('unknown archetype');
-  return SHARE_COPY.url.replace('{archetype_id}', result.archetype);
+/**
+ * The single outbound URL, carrying one authored UTM key.
+ *
+ * There is deliberately no per-archetype, per-channel or per-result variant: the campaign
+ * is measured as one source, and nothing about the run is encoded in a link.
+ */
+export const SHARE_URL = SHARE_COPY.url;
+
+/** The campaign URL. Takes no result, because the link never varies. */
+export function trackedShareUrl() {
+  return SHARE_URL;
 }
 
-/** Editable LinkedIn draft built only from public result copy and a coarse archetype id. */
-export function buildLinkedInDraft(result) {
+/** The LinkedIn composer, prefilled with exactly `text`. */
+export function linkedInComposerUrl(text) {
+  return `${LINKEDIN_COMPOSER_URL}&text=${encodeURIComponent(text)}`;
+}
+
+
+/**
+ * Editable LinkedIn draft.
+ *
+ * Built from public result copy, the normalized task and the fixed campaign URL. The URL carries
+ * no archetype, no score and no task; the task appears only in its own line, which the user can
+ * edit or delete before sharing.
+ */
+export function buildLinkedInDraft(result, task = '') {
   const archetype = ARCHETYPE_CONTENT[result.archetype];
   if (!archetype) throw new Error('unknown archetype');
   const strength = result.strengthIsFallback
     ? STRENGTH_COPY.fallback
     : STRENGTH_COPY[result.strengthQuestionId];
-  return SHARE_COPY.text
+
+  // The task is the one user-authored string in the draft. It is normalized here so a
+  // caller cannot smuggle control or bidi characters into the post, and the whole line
+  // is dropped rather than left dangling when there is no task.
+  const cleanTask = normalizeTask(task);
+  const taskLine = SHARE_COPY.taskLine.replace('{task}', cleanTask);
+  const template = cleanTask
+    ? SHARE_COPY.text
+    : SHARE_COPY.text.replace(`${taskLine.replace('{task}', '')}{task}\n\n`, '');
+
+  return template
     .replace('{archetype}', archetype.title)
+    .replace('{task}', cleanTask)
     .replace('{strength}', strength)
     .replace('{experiment}', archetype.experiment)
-    .replace('{url}', trackedShareUrl(result));
+    .replace('{url}', SHARE_URL);
 }
 
 /* ------------------------------------------------------------------ geometry */
@@ -610,27 +648,55 @@ export class ShareSheetError extends Error {
 }
 
 /** True when this browser can share the generated PNG as a file. */
-export function supportsFileShare() {
-  if (typeof navigator === 'undefined' || typeof navigator.canShare !== 'function') return false;
-  if (typeof navigator.share !== 'function' || typeof File !== 'function') return false;
+export function supportsFileShare(win = globalThis) {
+  const nav = win && win.navigator;
+  if (!nav || typeof nav.canShare !== 'function') return false;
+  if (typeof nav.share !== 'function' || typeof File !== 'function') return false;
   try {
-    return navigator.canShare({ files: [new File([new Blob([])], CARD_FILENAME, { type: 'image/png' })] });
+    return nav.canShare({ files: [new File([new Blob([])], CARD_FILENAME, { type: 'image/png' })] });
   } catch {
     return false;
   }
 }
 
-/** Download the card as a PNG. Resolves once the download has been handed to the browser. */
-export async function downloadCard(result) {
-  const blob = await renderCardBlob(result);
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = CARD_FILENAME;
-  document.body.append(anchor);
-  anchor.click();
-  anchor.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+/**
+ * True when the native share sheet is the better route.
+ *
+ * Desktop Chrome answers `canShare({files})` with `true` and then opens a generic OS share
+ * sheet, which is a worse LinkedIn experience than opening the composer directly. File
+ * support alone is therefore not the test. The route is chosen from input capability: a
+ * genuinely coarse pointer with no hover, which is what a phone or tablet reports and what
+ * a mouse-driven desktop does not. No user-agent string is read anywhere.
+ */
+export function prefersNativeShare(win = globalThis) {
+  if (!supportsFileShare(win)) return false;
+  const query = win && win.matchMedia;
+  if (typeof query !== 'function') return false;
+  const coarse = query.call(win, '(pointer: coarse)');
+  const hoverless = query.call(win, '(hover: none)');
+  return Boolean(coarse && coarse.matches && hoverless && hoverless.matches);
+}
+
+/**
+ * Put the card PNG on the clipboard.
+ *
+ * Must be called inside the user gesture that requested the share. Throws a typed
+ * ShareSheetError on every failure path, including a browser with no `ClipboardItem`, so
+ * the caller can report the truth instead of guessing.
+ */
+export async function copyImage(blob, win = globalThis) {
+  const nav = win && win.navigator;
+  const Item = win && win.ClipboardItem;
+  if (!blob) throw new ShareSheetError('no card');
+  if (!nav || !nav.clipboard || typeof nav.clipboard.write !== 'function') {
+    throw new ShareSheetError('clipboard unavailable');
+  }
+  if (typeof Item !== 'function') throw new ShareSheetError('ClipboardItem unavailable');
+  try {
+    await nav.clipboard.write([new Item({ [blob.type || 'image/png']: blob })]);
+  } catch (error) {
+    throw new ShareSheetError(error);
+  }
 }
 
 /**
@@ -642,9 +708,9 @@ export async function downloadCard(result) {
  *
  * @returns {Promise<'shared' | 'cancelled'>}
  */
-export async function shareCard(result, draft = buildLinkedInDraft(result)) {
-  const blob = await renderCardBlob(result);
-  const file = new File([blob], CARD_FILENAME, { type: 'image/png' });
+export async function shareCard(result, draft = buildLinkedInDraft(result), blob = null) {
+  const png = blob || await renderCardBlob(result);
+  const file = new File([png], CARD_FILENAME, { type: 'image/png' });
   try {
     await navigator.share({
       files: [file],
@@ -656,17 +722,4 @@ export async function shareCard(result, draft = buildLinkedInDraft(result)) {
     if (error && error.name === 'AbortError') return 'cancelled';
     throw new ShareSheetError(error);
   }
-}
-
-/** Copy the canonical URL. Never the staged or current URL. */
-export async function copyText(value) {
-  if (typeof navigator === 'undefined' || !navigator.clipboard || !navigator.clipboard.writeText) {
-    throw new Error('clipboard unavailable');
-  }
-  await navigator.clipboard.writeText(value);
-}
-
-/** Copy the canonical URL. Retained for staged-link sanitation tests and compatibility. */
-export async function copyCanonicalUrl() {
-  await copyText(CANONICAL_URL);
 }

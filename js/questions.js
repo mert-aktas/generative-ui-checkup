@@ -28,126 +28,206 @@ export const QUESTIONS = deepFreeze([
   {
     id: "q1",
     dimension: "valueFit",
-    text: "Üründe aynı işi yapmaya çalışan yeni ve deneyimli iki kullanıcıyı düşünün. İhtiyaç duydukları ekran ne kadar farklı olmalı?",
+    text: "Bu görevi farklı kullanıcılar tamamladığında ihtiyaç duydukları ekran ve adımlar ne kadar değişiyor?",
     options: [
-      "Değişmez: ikisi de aynı adımları ve aynı ekranı kullanır",
+      "Değişmez: herkes aynı adımları ve aynı ekranı kullanır",
       "Yapı aynı kalır; yalnız içerik veya öncelik değişir",
-      "Rol ya da ürün durumu bazı bileşenleri ve sıralamayı değiştirir",
-      "Kullanıcının amacı, rolü ve canlı veriler ekranın büyük bölümünü değiştirmelidir"
+      "Rol veya ürün durumu bazı bileşenleri ve adımların sırasını değiştirir",
+      "Değişken çalışma ekranı gerekir: amaç, rol ve canlı durum ekranın büyük bölümünü değiştirir"
     ],
     help: {
       label: "Değişken çalışma ekranı ne demek?",
-      body: "Generative UI, aynı sabit ekranı herkese göstermek yerine kullanıcının amacına ve mevcut durumuna göre gerekli bileşenleri o anda bir araya getirir. Değer, yalnız içerik değiştiğinde değil, görevi tamamlama biçimi gerçekten değiştiğinde oluşur."
+      body: "Değişken çalışma ekranı, aynı görevin kullanıcının amacı, rolü veya mevcut durumuna göre farklı bileşenlerle yürütülmesidir. Generative UI ancak bu fark görevi tamamlama biçimini gerçekten iyileştiriyorsa anlamlı değer yaratır."
     }
   },
   {
     id: "q2",
     dimension: "valueFit",
-    text: "Generative UI ile uyarlamak istediğiniz bu görev, activation, retention veya revenue sonuçları için ne kadar önemli?",
+    text: "Bu görevin kullanıcı ve iş sonucu üzerindeki etkisi nedir?",
     options: [
       "Nadiren yapılır; etkisi daha çok görseldir",
-      "Tekrarlanır ama kullanıcı veya iş sonucu üzerindeki etkisi düşüktür",
-      "Sık yapılır, birkaç adımdan oluşur ve önemli bir sonucu etkiler",
-      "Ürünün ana işlerinden biridir; activation, retention veya revenue için kritiktir"
+      "Tekrarlanır ancak kullanıcı veya iş sonucu üzerindeki etkisi düşüktür",
+      "Sık yapılır, birden fazla adımdan oluşur ve önemli bir sonucu etkiler",
+      "Bu, kritik kullanıcı görevlerinden biridir; activation, retention veya revenue için doğrudan önemlidir"
     ],
     help: {
       label: "Kritik kullanıcı görevi ne demek?",
-      body: "Kullanıcının üründen değer almasını doğrudan etkileyen iştir. Örneğin ilk kurulumu tamamlamak activation'ı, düzenli rapor hazırlamak retention'ı, plan yükseltmek ise revenue'yu etkileyebilir."
+      body: "Kritik kullanıcı görevi, kullanıcının üründen değer almasını veya işletmenin önemli bir sonucunu doğrudan etkileyen iştir. İlk kurulumu tamamlamak activation'ı, düzenli rapor hazırlamak retention'ı, plan yükseltmek ise revenue'yu etkileyebilir."
     }
   },
   {
     id: "q3",
     dimension: "systemReadiness",
-    text: "Yarın bir model ürün ekranınızı oluşturacak olsa, kullanabileceği bileşen sistemi ne kadar hazır?",
+    text: "Bu görevi destekleyen mevcut ürün ekranları ne kadar yeniden kullanılabilir bileşenlerden oluşuyor?",
     options: [
-      "Ekranlar sayfaya özel yazılmış; parçalar birbirine sıkı bağlıdır",
+      "Ekranlar sayfaya özel yazılmıştır; parçalar birbirine sıkı bağlıdır",
       "Ortak görsel bloklar vardır; davranışları hâlâ sayfaya bağlıdır",
       "Yeniden kullanılabilir bileşenler ve tanımlı durumlar vardır",
-      "Bileşen girdileri, durumları, izinleri ve kullanım kuralları güncel bir katalogda tanımlıdır"
+      "Bileşen girdileri, durumları, izinleri ve hata davranışları güncel bileşen sözleşmeleriyle tanımlıdır"
     ],
     help: {
       label: "Bileşen sözleşmesi ne demek?",
-      body: "Bir bileşenin hangi veriyi alabileceğini, hangi durumlarda çalıştığını, kimlerin kullanabildiğini ve hata halinde ne göstereceğini açıklayan teknik sözleşmedir. Model ancak bu sınırlar açıksa güvenli bir ekran kurabilir."
+      body: "Bileşen sözleşmesi, bir bileşenin hangi veriyi kabul ettiğini, hangi durumlarda çalıştığını, kimlerin kullanabildiğini ve hata halinde ne göstereceğini tanımlar. Generative UI güvenli bir ekran kurabilmek için bu sınırları açık biçimde bilmelidir."
     }
   },
   {
     id: "q4",
     dimension: "systemReadiness",
-    text: "Generative UI, kullanıcıya o anda doğru ekranı göstermek için hangi güvenilir bağlam sinyallerini kullanabilir?",
+    text: "Ürününüz, bu görev sırasında doğru içerik veya akışı seçmek için hangi güvenilir bağlam sinyallerini kullanıyor?",
     options: [
-      "Kullanıcının bulunduğu sayfa dışında anlamlı bir sinyal yoktur",
-      "Rol, plan veya hesap bilgisi kullanılabilir",
-      "Bunlara ek olarak canlı ürün durumu ve yakın tarihli kullanıcı hareketleri kullanılabilir",
-      "Açık kullanıcı amacı, canlı durum, izin verilen geçmiş ve yetkiler birlikte kullanılabilir"
+      "Kullanıcının bulunduğu sayfa dışında anlamlı bir sinyal kullanılmıyor",
+      "Rol, plan veya hesap bilgisi kullanılabiliyor",
+      "Bunlara ek olarak canlı ürün durumu ve yakın tarihli kullanıcı hareketleri kullanılabiliyor",
+      "Açık kullanıcı amacı, canlı durum, izin verilen geçmiş ve yetkiler birlikte kullanılabiliyor"
     ],
     help: {
       label: "Bağlam sinyali ne demek?",
-      body: "Kullanıcının rolü, planı, açık amacı, son hareketleri veya hesabın canlı durumu gibi ekran kararını etkileyen bilgidir. Sinyal güncel, izinli ve kaynağı belli değilse kişiselleştirme güvenilir olmaz."
+      body: "Bağlam sinyali; kullanıcının rolü, planı, açık amacı, son hareketleri veya hesabın güncel durumu gibi ekran kararını etkileyen bilgidir. Generative UI'ın doğru bir yüzey seçebilmesi için sinyalin güncel, izinli ve kaynağı belli olması gerekir."
     }
   },
   {
     id: "q5",
     dimension: "controlSafety",
-    text: "Generative UI yanlış veya alakasız bir ekran gösterirse kullanıcı nasıl yoluna devam eder?",
+    text: "Kullanıcı bu görev sırasında yanlış, alakasız veya beklemediği bir ekrana geldiğinde nasıl toparlanıyor?",
     options: [
-      "Ekranın neden değiştiğini göremez; sabit bir geri dönüş yolu yoktur",
+      "Ekranın neden değiştiğini göremez; güvenilir bir geri dönüş yolu yoktur",
       "Geri çıkabilir veya akışı baştan başlatabilir",
-      "Değişikliğin nedenini görür; amacını değiştirebilir veya sabit ekrana dönebilir",
-      "Ekranı önizleyebilir, düzenleyebilir, sıfırlayabilir ve kalıcı bir alternatif kullanabilir"
+      "Değişikliğin nedenini görebilir; seçimini değiştirebilir veya standart ekrana dönebilir",
+      "Güvenli geri dönüş vardır: kullanıcı ekranı önizleyebilir, seçimini düzenleyebilir, sıfırlayabilir veya standart akışa dönebilir"
     ],
     help: {
       label: "Güvenli geri dönüş ne demek?",
-      body: "Üretilen ekran işe yaramadığında kullanıcının dönebileceği güvenilir alternatiftir. Sabit ürün ekranı, önceki görünüm veya sıfırlama seçeneği bu geri dönüşü sağlayabilir."
+      body: "Güvenli geri dönüş, beklenmeyen bir ekran veya akış işe yaramadığında kullanıcının dönebileceği güvenilir yoldur. Önceki görünüm, standart ürün ekranı, düzenleme veya sıfırlama seçeneği bu güveni sağlar."
     }
   },
   {
     id: "q6",
     dimension: "controlSafety",
-    text: "Üretilen ekrandan ödeme, veri silme veya yetki değiştirme gibi kritik bir işlem başlatılırsa ne olur?",
+    text: "Bu görev sırasında ödeme, veri silme veya yetki değiştirme gibi kritik bir işlem başlatıldığında hangi korumalar devreye giriyor?",
     options: [
-      "İşlem doğrudan çalışır",
-      "Standart bir onay ekranı gösterilir",
-      "İzin kontrolü ve işlem özeti gösterilir; geri alma veya işlem kaydı vardır",
-      "Yalnız önceden onaylanmış işlemler, önizleme, izin, kurallar ve denetim kaydıyla çalışır"
+      "İşlem doğrudan çalışıyor",
+      "Standart bir onay ekranı gösteriliyor",
+      "İzin kontrolü ve işlem özeti gösteriliyor; geri alma veya işlem kaydı bulunuyor",
+      "Yalnız önceden onaylanmış işlemler; önizleme, izin, iş kuralı ve denetim kaydıyla çalışıyor"
     ],
     help: {
       label: "Kritik işlem ne demek?",
-      body: "Para, veri, erişim veya müşteri iletişimi üzerinde değişiklik yapan ve geri alınması zor olabilen işlemdir. Ödeme almak, veri silmek, kullanıcı davet etmek veya yetki değiştirmek bu gruba girer."
+      body: "Kritik işlem; para, veri, erişim veya müşteri iletişimi üzerinde etkisi olan ve geri alınması zor olabilen işlemdir. Generative UI hazırlığında bu işlemler model kararına bırakılmamalı; izin, önizleme ve denetim kurallarıyla sınırlandırılmalıdır."
     }
   },
   {
     id: "q7",
     dimension: "discoveryResilience",
-    text: "Sol menü yarın kaybolsa, sistem ürününüzün neler yapabildiğini nereden bilir?",
+    text: "Ekibiniz, bu görevi destekleyen özellikleri ve kuralları bugün nerede tanımlıyor?",
     options: [
-      "Ürünün yapabildiği işleri gösteren güncel bir envanter yoktur",
-      "Bilgi dokümantasyonda veya ekip içinde dağınık halde durur",
-      "Sahibi ve hedef kitlesi tanımlı, güncel bir özellik kataloğu vardır",
-      "Katalog güncel ve aranabilirdir; rol, izin ve ön koşullarla bağlantılıdır"
+      "Ürünün yapabildiği işleri gösteren güncel bir envanter yok",
+      "Bilgi dokümantasyonda veya ekipler arasında dağınık halde duruyor",
+      "Sahibi ve hedef kullanıcısı tanımlı, güncel bir özellik kataloğu var",
+      "Özellik kataloğu güncel ve aranabilir; rol, izin ve ön koşullarla bağlantılı"
     ],
     help: {
       label: "Özellik kataloğu ne demek?",
-      body: "Ürünün yapabildiği işleri menü yapısından bağımsız olarak tanımlayan güncel envanterdir. Her özelliğin hedef kullanıcısı, izinleri, ön koşulları ve sahibi burada yer alır."
+      body: "Özellik kataloğu, ürünün yapabildiği işleri menü yapısından bağımsız olarak tanımlayan güncel envanterdir. Generative UI'ın uygun yetenekleri seçebilmesi için özelliklerin hedef kullanıcısı, izinleri, ön koşulları ve sahibi burada açık olmalıdır."
     }
   },
   {
     id: "q8",
     dimension: "discoveryResilience",
-    text: "Generative UI bir özelliği o anda göstermediyse kullanıcı onu daha sonra nasıl bulur?",
+    text: "Bu görev için gereken bir özellik o an ekranda görünmüyorsa kullanıcı onu bugün nasıl buluyor?",
     options: [
-      "Ancak adını biliyorsa arar veya support ekibine sorar",
-      "Dokümantasyonda ya da aramada bulabilir",
-      "Ekrandan bağımsız, gezilebilir bir ürün içi merkezden keşfedebilir",
-      "Hem gezilebilir katalogdan hem bağlama uygun yönlendirmeden keşfedebilir; daha önce gördüğü işe geri dönebilir"
+      "Ancak özelliğin adını biliyorsa arıyor veya support ekibine soruyor",
+      "Dokümantasyonda ya da aramada bulabiliyor",
+      "Ekrandan bağımsız, gezilebilir bir ürün içi merkezden keşfedebiliyor",
+      "Keşfedilebilirlik birden fazla yolla sağlanıyor: gezilebilir ürün merkezi, bağlama uygun yönlendirme ve son kullanılanlara dönüş"
     ],
     help: {
       label: "Keşfedilebilirlik ne demek?",
-      body: "Bir özellik o an ekranda görünmese bile kullanıcının onu daha sonra arayıp bulabilmesidir. Aranabilir ürün merkezi, bağlama uygun yönlendirme ve son kullanılanlara dönüş bu dayanıklılığı sağlar."
+      body: "Keşfedilebilirlik, bir özellik o an ekranda görünmese bile kullanıcının onu daha sonra bulabilmesidir. Generative UI kişiye özel yüzeyler oluşturduğunda aranabilir katalog, ürün merkezi ve son kullanılanlara dönüş daha da önemli hale gelir."
     }
   }
 ]);
 
 /** Public profile names, keyed by the profile ids in ./scoring.js. */
+/* ------------------------------------------------------- the selected task */
+
+/**
+ * The one free-text value in the product: the single user task the whole check-up is
+ * about. It reaches the DOM and the editable LinkedIn draft as text, and nothing else.
+ * See PRODUCT-SPEC.md "Task selection and answering instruction" for the contract.
+ */
+export const TASK_LIMITS = deepFreeze({ min: 3, max: 80 });
+
+/** C0 and C1 control characters, minus tab, newline and carriage return. */
+const TASK_CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g;
+
+/** Unicode bidi overrides and isolates, which can reorder text on screen. */
+const TASK_BIDI = /[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/g;
+
+/**
+ * Zero-width and default-ignorable formatting characters.
+ *
+ * These render as nothing on their own, so they must not count towards the three-character
+ * minimum. Without this, a task of three zero-width spaces validates and then displays as an
+ * empty pair of quotes.
+ *
+ * Variation selectors (U+FE00-U+FE0F) are deliberately *not* in this set. They cannot pad a
+ * length on their own because they only ever follow a base character, and stripping them would
+ * silently rewrite the user's emoji, turning a text-presentation sequence into a different glyph.
+ */
+const TASK_INVISIBLE = /[\u00AD\u180E\u200B-\u200D\u2060-\u2064\uFEFF\uFFF9-\uFFFB]/g;
+
+/**
+ * Normalize a raw task value: drop characters that can lie about their own rendering or occupy
+ * no space at all, fold every kind of whitespace into single spaces, and trim.
+ *
+ * The minimum length is therefore a minimum of *visible* characters: invisible padding is gone
+ * before anything is counted.
+ *
+ * This is not HTML sanitization. Markup is left intact on purpose, because every
+ * insertion point writes the value with `textContent` and never parses it.
+ */
+export function normalizeTask(raw) {
+  if (typeof raw !== "string") return "";
+  return raw
+    .replace(TASK_CONTROL, "")
+    .replace(TASK_BIDI, "")
+    .replace(TASK_INVISIBLE, "")
+    .replace(/\s+/gu, " ")
+    .trim();
+}
+
+/** Length in Unicode code points, so one emoji counts as one character. */
+export function taskLength(value) {
+  return typeof value === "string" ? [...value].length : 0;
+}
+
+/** True when a raw value normalizes to something inside the documented limits. */
+export function isValidTask(raw) {
+  const length = taskLength(normalizeTask(raw));
+  return length >= TASK_LIMITS.min && length <= TASK_LIMITS.max;
+}
+
+/** Instruction-screen copy for choosing the task. Source: COPY-TR.md. */
+export const TASK_COPY = deepFreeze({
+  heading: "Önce değerlendireceğiniz görevi seçin",
+  intro: "Ürününüzde kullanıcıların sık yaptığı ve sonucu önemli olan tek bir görevi seçin. Sonraki sekiz soruda ürününüzün bu görevi bugün nasıl desteklediğini değerlendireceğiz.",
+  presetGroupLabel: "Hazır örnekler",
+  presets: [
+    "İlk kurulumu tamamlamak",
+    "Bir rapor hazırlamak",
+    "Ekip arkadaşını davet etmek",
+    "Bir entegrasyonu kurmak",
+    "Kendi görevimi yazacağım"
+  ],
+  freeWritePreset: "Kendi görevimi yazacağım",
+  inputLabel: "Değerlendirilecek görev",
+  placeholder: "Örnek: Yeni kullanıcının ilk projesini oluşturması",
+  helper: "Kısa ve genel yazın; müşteri veya şirket adı eklemeyin.",
+  counterTemplate: "{count}/80",
+  errorTooShort: "Devam etmek için en az 3 karakterlik bir görev yazın.",
+  errorTooLong: "Görev en fazla 80 karakter olabilir."
+});
+
 export const PROFILE_NAMES = deepFreeze({
   valueFit: "Kullanım senaryosu",
   systemReadiness: "Teknik hazırlık",
@@ -213,15 +293,22 @@ export const STRENGTH_COPY = deepFreeze({
 });
 
 /** Recommendation copy for the two priority gaps. */
+/**
+ * The two questions the result highlights.
+ *
+ * Two questions are always selected, including when every answer is the maximum, so these
+ * lines must be true at every answer value. Each names a control to establish and verify
+ * during the pilot; none of them asserts that the capability is missing.
+ */
 export const RECOMMENDATION_COPY = deepFreeze({
-  q1: "Tek bir kullanıcı görevi seçin; rol veya ürün durumu değiştiğinde gerekli ekranın gerçekten değiştiğini kullanıcı görüşmeleriyle doğrulayın.",
-  q2: "Pilotu activation, retention veya revenue ile ilişkili tek bir ölçülebilir sonuca bağlayın.",
-  q3: "Pilot kapsamındaki bileşenlerin girdilerini, durumlarını, izinlerini ve geri dönüşlerini sistemin okuyabileceği biçimde tanımlayın.",
-  q4: "Generative UI sisteminin kullanabileceği bağlam sinyallerini güvenilir, güncel, izinli ve denetlenebilir bir listeyle sınırlandırın.",
-  q5: "Üretilen ekranın neden gösterildiğini açıklayın; düzenleme, sıfırlama ve sabit ekrana dönüş seçenekleri ekleyin.",
-  q6: "Ödeme, veri silme ve yetki değişikliği gibi işlemleri izin kontrolü, açık özet, onay ve denetim kaydı olmadan çalıştırmayın.",
-  q7: "Özellik kataloğunu ana menüden ayırın; her özellik için sahip, hedef kullanıcı, izin ve ön koşul bilgisi ekleyin.",
-  q8: "Görünmeyen özellikler için aranabilir bir ürün merkezi, bağlama uygun yönlendirme ve son kullanılanlara dönüş yolu sağlayın."
+  q1: "Pilotu tek bir kullanıcı görevine sabitleyin; rol veya ürün durumu değiştiğinde gerekli ekranın gerçekten değiştiğini ölçerek doğrulayın.",
+  q2: "Pilotu activation, retention veya revenue ile ilişkili tek bir ölçülebilir sonuca bağlayın ve bu sonucu pilot boyunca izleyin.",
+  q3: "Pilot kapsamındaki bileşenlerin girdilerini, durumlarını, izinlerini ve hata davranışlarını sistemin okuyabileceği biçimde pilotta güvence altına alın.",
+  q4: "Pilotta kullanılacak bağlam sinyallerini güncel, izinli ve kaynağı belli bir listeyle sınırlandırın; bu sınırı pilot boyunca koruyun.",
+  q5: "Ekranın neden gösterildiğini açıklayan; düzenleme, sıfırlama ve standart akışa dönüş yollarını pilotta güvence altına alın.",
+  q6: "Kritik işlemleri izin kontrolü, açık özet, onay ve denetim kaydıyla pilotta güvence altına alın.",
+  q7: "Menüden bağımsız, güncel ve aranabilir özellik kataloğunu; sahip, hedef kullanıcı, izin ve ön koşul bilgisiyle birlikte pilotta güvence altına alın.",
+  q8: "Görünmeyen özelliklerin bulunabilmesini aranabilir ürün merkezi, bağlama uygun yönlendirme ve son kullanılanlara dönüş yoluyla pilotta güvence altına alın."
 });
 
 /**
@@ -235,8 +322,19 @@ export const UI_COPY = deepFreeze({
   finish: "Sonucumu göster",
   unansweredError: "Devam etmek için ürününüzde bugün geçerli olan seçeneği işaretleyin.",
   resultError: "Sonuç hesaplanamadı. Yanıtlarınızı kontrol edip yeniden deneyin.",
-  desktopPrepared: "Post metni kopyalandı ve sonuç karnesi indirildi. LinkedIn'de görseli posta ekleyip metni yayımlayabilirsiniz.",
-  copyFailure: "Post metni kopyalanamadı. Metni kutudan elle kopyalayabilirsiniz; sonuç karneniz yine indirilecek.",
+  begin: "Check-up'a başla",
+  taskLabel: "Değerlendirilen görev",
+  pilotScope: "İlk pilotunuzu \u201C{task}\u201D görevinin kritik işlem içermeyen, geri alınabilir bir bölümüyle sınırlandırın.",
+  cardPreparing: "Karne hazırlanıyor…",
+  shareLinkedIn: "LinkedIn'de paylaş",
+  shareNative: "Paylaşım ekranını aç",
+  shareOpened: "LinkedIn açıldı. Karne görselini gönderiye eklemek için Cmd+V veya Ctrl+V kullanın.",
+  clipboardFailure: "Post metniniz LinkedIn'de açıldı, ancak karne görseli panoya kopyalanamadı. Görseli yeniden kopyalamayı deneyebilir veya sonuç ekranının görüntüsünü alabilirsiniz.",
+  clipboardRetry: "Görseli yeniden kopyala",
+  clipboardRetrySuccess: "Karne görseli panoya kopyalandı. LinkedIn sekmesinde Cmd+V veya Ctrl+V ile ekleyebilirsiniz.",
+  clipboardRetryFailure: "Karne görseli yine kopyalanamadı. Sonuç ekranının görüntüsünü alıp postunuza ekleyebilirsiniz.",
+  popupBlocked: "Tarayıcı yeni sekmeyi engelledi. Metniniz burada duruyor; LinkedIn'i aşağıdaki düğmeden açabilirsiniz.",
+  popupBlockedAction: "LinkedIn'i aç",
   shareCancelled: "Paylaşım iptal edildi. Metniniz burada duruyor; hazır olduğunuzda yeniden deneyebilirsiniz.",
   cardError: "Sonuç karnesi hazırlanamadı. Sonuç ekranının görüntüsünü alıp postunuza ekleyebilirsiniz.",
   shareFailure: "Paylaşım ekranı açılamadı. Metniniz kaybolmadı; yeniden deneyebilir veya sonuç ekranının görüntüsünü alabilirsiniz."
@@ -259,11 +357,15 @@ export const CARD_COPY = deepFreeze({
   footerUrlBottom: "generative-ui-checkup/"
 });
 
-/** Native share sheet copy. `{archetype}` is replaced with the archetype title. */
+/**
+ * Editable post copy. `{archetype}`, `{strength}`, `{experiment}` and `{url}` are always
+ * replaced; the `{task}` line is dropped whole when no task is available.
+ */
 export const SHARE_COPY = deepFreeze({
   title: "Generative UI Check-up sonucum",
-  text: "Generative UI Check-up sonucum: {archetype}\n\nBugünkü güçlü temelim:\n{strength}\n\nİlk pilot adımım:\n{experiment}\n\nSizce ürününüz Generative UI için ne kadar hazır?\n{url}",
-  url: "https://games.userguiding.com/generative-ui-checkup/?utm_source=linkedin&utm_medium=organic_social&utm_campaign=generative_ui_checkup&utm_content={archetype_id}"
+  text: "Generative UI Check-up sonucum: {archetype}\n\nDeğerlendirdiğim görev: {task}\n\nBugünkü güçlü temelim:\n{strength}\n\nİlk pilot adımım:\n{experiment}\n\nSizce ürününüz Generative UI için ne kadar hazır?\n{url}",
+  taskLine: "Değerlendirdiğim görev: {task}",
+  url: "https://games.userguiding.com/generative-ui-checkup/?utm_source=generative_ui_checkup"
 });
 
 export const PARTNER_COPY = deepFreeze({

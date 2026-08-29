@@ -9,9 +9,10 @@
   Pages cannot set response headers.
 
   It describes exactly what this build loads: its own module scripts, its own stylesheet,
-  its own SVG assets, and nothing else. Canvas export needs no allowance; the PNG download
-  is a same-document blob: anchor and native sharing goes through the OS sheet, so neither
-  needs a network directive.
+  its own SVG assets, and nothing else. Canvas export needs no allowance: the PNG is handed
+  to the clipboard or to the OS share sheet, and nothing is ever downloaded, so neither needs
+  a network directive. Opening the LinkedIn composer is a user-initiated navigation, which CSP
+  does not govern.
 
   frame-ancestors and report-uri are deliberately absent: a meta-delivered policy ignores
   them, and including them only produces console warnings. The host should send those two
@@ -71,7 +72,7 @@
         <p class="actions">
           <button class="button button--primary" type="button" data-action="start">Check-up'ı başlat</button>
         </p>
-        <p class="meta">Yaklaşık 2 dakika · Ürününüzde bugün çalışan durumu yanıtlayın · Ham yanıtlar cihazınızdan çıkmaz</p>
+        <p class="meta">Yaklaşık 2 dakika · Bugün çalışan ürünü değerlendirin · Giriş yapmanız veya ürününüzü bağlamanız gerekmez</p>
         <p class="actions actions--quiet">
           <button class="link" type="button" data-action="methodology" data-source="landing">Nasıl hesaplanıyor?</button>
         </p>
@@ -85,10 +86,36 @@
 
     <!-- ======================================================= instructions -->
     <section class="screen" id="screen-instructions" aria-labelledby="instructions-heading" hidden>
-      <h1 class="title" id="instructions-heading" tabindex="-1">Planları değil, bugünkü ürünü değerlendirin.</h1>
+      <h1 class="title" id="instructions-heading" tabindex="-1">Önce değerlendireceğiniz görevi seçin</h1>
+      <p class="lede">Ürününüzde kullanıcıların sık yaptığı ve sonucu önemli olan tek bir görevi seçin. Sonraki sekiz soruda ürününüzün bu görevi bugün nasıl desteklediğini değerlendireceğiz.</p>
+
+      <div class="taskpick">
+        <p class="taskpick__grouplabel" id="task-presets-label">Hazır örnekler</p>
+        <div class="taskpick__presets" id="task-presets" role="group" aria-labelledby="task-presets-label"></div>
+
+        <label class="taskpick__label" for="task-input">Değerlendirilecek görev</label>
+        <input class="taskpick__input"
+               id="task-input"
+               type="text"
+               inputmode="text"
+               autocomplete="off"
+               autocapitalize="sentences"
+               spellcheck="false"
+               maxlength="200"
+               placeholder="Örnek: Yeni kullanıcının ilk projesini oluşturması"
+               aria-describedby="task-helper task-counter">
+        <div class="taskpick__meta">
+          <p class="taskpick__helper" id="task-helper">Kısa ve genel yazın; müşteri veya şirket adı eklemeyin.</p>
+          <p class="taskpick__counter" id="task-counter">0/80</p>
+        </div>
+        <p class="formerror" id="task-error" role="alert" hidden></p>
+      </div>
+
+      <h2 class="subtitle" id="instructions-scoring">Planları değil, bugünkü ürünü değerlendirin.</h2>
       <p class="lede">Roadmap'teki planları veya “istersek yaparız” dediğiniz işleri hesaba katmayın. İki seçenek arasında kalırsanız kanıtlayabildiğiniz daha düşük seçeneği işaretleyin.</p>
+
       <p class="actions">
-        <button class="button button--primary" type="button" data-action="begin">Anladım, başlayalım</button>
+        <button class="button button--primary" type="button" data-action="begin" disabled>Check-up'a başla</button>
       </p>
     </section>
 
@@ -108,6 +135,11 @@
         <p class="progress__count" id="progress-count">Soru 1 / 8</p>
         <p class="progress__dimension" id="progress-dimension"></p>
       </div>
+
+      <dl class="taskcontext" id="question-task">
+        <dt class="taskcontext__label">Değerlendirilen görev</dt>
+        <dd class="taskcontext__value" id="question-task-value"></dd>
+      </dl>
 
       <form class="qform" id="question-form" novalidate>
         <fieldset class="qform__fieldset">
@@ -137,6 +169,10 @@
 
       <p class="result-index" id="result-index" aria-hidden="true"></p>
       <p class="eyebrow">SONUCUNUZ</p>
+      <dl class="taskcontext" id="result-task">
+        <dt class="taskcontext__label">Değerlendirilen görev</dt>
+        <dd class="taskcontext__value" id="result-task-value"></dd>
+      </dl>
       <h1 class="display display--result" id="result-heading" tabindex="-1"></h1>
       <p class="lede" id="result-summary"></p>
 
@@ -151,12 +187,13 @@
       </section>
 
       <section class="block" aria-labelledby="gaps-heading">
-        <h2 class="block__title" id="gaps-heading">Önce kapatmanız gereken iki açık</h2>
+        <h2 class="block__title" id="gaps-heading">Pilotta güvence altına almanız gereken iki alan</h2>
         <ol class="gaps" id="result-gaps"></ol>
       </section>
 
       <section class="block" aria-labelledby="experiment-heading">
         <h2 class="block__title" id="experiment-heading">Önerilen ilk Generative UI pilotu</h2>
+        <p class="block__body block__body--scope" id="result-pilot-scope"></p>
         <p class="block__body" id="result-experiment"></p>
       </section>
 
@@ -164,7 +201,6 @@
         <div class="share__actions">
           <button class="button button--primary" type="button" data-action="share-open" id="share-open">Sonucumu paylaş<span class="button__glyph" aria-hidden="true">↗</span></button>
         </div>
-        <p class="share__status" id="share-status" role="status"></p>
       </div>
 
       <p class="actions actions--quiet">
@@ -175,11 +211,11 @@
       <aside class="partners" aria-labelledby="partners-heading">
         <h2 class="block__title" id="partners-heading">Hazırlayanlar</h2>
         <div class="partners__grid">
-          <a class="partner" href="https://www.softcommitment.com/?utm_source=generative_ui_checkup&amp;utm_medium=referral&amp;utm_campaign=generative_ui_checkup&amp;utm_content=soft_commitment_logo" target="_blank" rel="noopener" data-action="partner" data-destination="soft_commitment">
+          <a class="partner" href="https://www.softcommitment.com/?utm_source=generative_ui_checkup" target="_blank" rel="noopener" data-action="partner" data-destination="soft_commitment">
             <strong class="partner__wordmark" lang="en">Soft Commitment</strong>
             <span>AI, startup'lar ve yeni ekonomi üzerine iki haftada bir yayımlanan bağımsız bülten.</span>
           </a>
-          <a class="partner" href="https://userguiding.com/?utm_source=generative_ui_checkup&amp;utm_medium=referral&amp;utm_campaign=generative_ui_checkup&amp;utm_content=userguiding_logo" target="_blank" rel="noopener" data-action="partner" data-destination="userguiding">
+          <a class="partner" href="https://userguiding.com/?utm_source=generative_ui_checkup" target="_blank" rel="noopener" data-action="partner" data-destination="userguiding">
             <strong class="partner__wordmark partner__wordmark--ug" lang="en">UserGuiding</strong>
             <span>Ürün ekiplerinin kod yazmadan onboarding ve ürün içi deneyimler oluşturmasını sağlayan product adoption platformu.</span>
           </a>
@@ -200,9 +236,9 @@
   <div class="methodology__inner">
     <h2 class="methodology__title" id="methodology-heading" tabindex="-1">Bu sonuç nasıl hesaplanıyor?</h2>
     <p>Sekiz soru, Generative UI hazırlığının dört ayrı alanını ölçer: kullanım senaryosu, teknik hazırlık, kontrol ve güvenlik, keşfedilebilirlik. Her alan 0 ile 6 arasında ayrı değerlendirilir. Güçlü bir alan başka bir alandaki açığı kapatmaz; bu yüzden tek bir toplam puan göstermiyoruz.</p>
-    <p>Sonuç türünüz, dört alandaki eşiklerin belirli bir sırayla değerlendirilmesiyle oluşur. Ardından en güçlü yanıtınız bugünkü temelinizi, en düşük iki yanıtınız ise önce kapatmanız gereken hazırlık açıklarını belirler.</p>
+    <p>Sonuç türünüz, dört alandaki eşiklerin belirli bir sırayla değerlendirilmesiyle oluşur. Ardından en güçlü yanıtınız bugünkü temelinizi belirler. En düşük iki yanıtınız, tam eşitlik halinde ise en yüksek riskli iki alan, pilot sırasında öncelikle güvence altına almanız gereken kontrolleri belirler.</p>
     <p>Sorular Soft Commitment ve UserGuiding tarafından bu çalışma için yazıldı. Sonuç, sektör karşılaştırması veya otomatik bir ürün incelemesi değildir; ekibinizin Generative UI hazırlığını aynı başlıklar altında konuşabilmesi için tasarlanmış bir öz değerlendirmedir.</p>
-    <p>Ürününüze bağlanmıyoruz; kod, dashboard, müşteri verisi veya şirket bilgisi incelemiyoruz. Yanıtlar yalnız bu tarayıcı sekmesinde tutulur. Ölçüm açıksa yalnız soru numarası, tamamlanma ve sonuç türü gibi yanıttan bağımsız olaylar kaydedilir.</p>
+    <p>Sonuç yalnızca seçtiğiniz sekiz cevaptan hesaplanır. Ürün bağlantısı, kod analizi veya müşteri verisi kullanılmaz.</p>
     <p class="actions">
       <button class="button button--primary" type="button" data-action="methodology-close">Kapat</button>
     </p>
@@ -214,13 +250,15 @@
     <div class="shareprep__copy">
       <p class="eyebrow">LINKEDIN PAYLAŞIMI</p>
       <h2 class="shareprep__title" id="share-dialog-heading" tabindex="-1">LinkedIn paylaşımınızı hazırlayın</h2>
-      <p class="shareprep__intro">Aşağıdaki metni dilediğiniz gibi düzenleyin. Sonuç karneniz ve takip bağlantınız paylaşım için birlikte hazırlanacak.</p>
+      <p class="shareprep__intro">Aşağıdaki metni dilediğiniz gibi düzenleyin. Paylaşırken kutudaki güncel metin kullanılır.</p>
       <label class="shareprep__label" for="share-draft">LinkedIn post metni</label>
       <textarea class="shareprep__draft" id="share-draft" rows="10"></textarea>
       <p class="shareprep__note" id="share-note"></p>
       <p class="shareprep__status" id="share-dialog-status" role="status"></p>
       <div class="shareprep__actions">
-        <button class="button button--primary" type="button" data-action="share-confirm" id="share-confirm"></button>
+        <button class="button button--primary" type="button" data-action="share-confirm" id="share-confirm" data-state="preparing" disabled></button>
+        <button class="button button--quiet" type="button" data-action="share-retry-copy" id="share-retry-copy" hidden></button>
+        <button class="button button--quiet" type="button" data-action="share-open-linkedin" id="share-open-linkedin" hidden></button>
         <button class="link" type="button" data-action="share-close">Kapat</button>
       </div>
     </div>

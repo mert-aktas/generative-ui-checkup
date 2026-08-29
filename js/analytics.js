@@ -107,13 +107,12 @@ const SCHEMA = Object.freeze({
     once: true
   },
   guc_methodology_open: { params: { source: oneOf(['landing', 'result']) } },
-  guc_card_download: { params: { archetype: isArchetype } },
-  share_click: { params: { game: oneOf([GAME]), method: oneOf(['native', 'desktop']) } },
-  guc_share_success: { params: { method: oneOf(['native', 'desktop']), archetype: isArchetype } },
+  share_click: { params: { game: oneOf([GAME]), method: oneOf(['native', 'linkedin']) } },
+  guc_share_success: { params: { method: oneOf(['native', 'linkedin']), archetype: isArchetype } },
   guc_share_cancel: { params: { archetype: isArchetype } },
   cta_click: { params: { destination: oneOf(['soft_commitment', 'userguiding']), archetype: isArchetype } },
   guc_restart: { params: { archetype: isArchetype } },
-  guc_error: { params: { area: oneOf(['scoring', 'card', 'clipboard']) } }
+  guc_error: { params: { area: oneOf(['scoring', 'card', 'clipboard', 'share']) } }
 });
 
 export const EVENT_NAMES = Object.freeze(Object.keys(SCHEMA));

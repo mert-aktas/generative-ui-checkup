@@ -19,7 +19,12 @@ import {
   ARCHETYPE_CONTENT,
   STRENGTH_COPY,
   RECOMMENDATION_COPY,
-  UI_COPY
+  UI_COPY,
+  TASK_COPY,
+  TASK_LIMITS,
+  normalizeTask,
+  taskLength,
+  isValidTask
 } from './questions.js';
 
 import {
@@ -41,15 +46,15 @@ import {
 
 import {
   renderCard,
+  renderCardBlob,
   buildCardModel,
-  downloadCard,
   shareCard,
   buildLinkedInDraft,
-  copyText,
-  supportsFileShare,
+  copyImage,
+  linkedInComposerUrl,
+  prefersNativeShare,
   ShareSheetError,
-  CANONICAL_URL,
-  LINKEDIN_COMPOSER_URL
+  CANONICAL_URL
 } from './share.js';
 
 /* ------------------------------------------------------------------ state */
@@ -60,9 +65,28 @@ function emptyAnswers() {
 
 const state = {
   screen: 'landing',
+  /** The normalized user task the whole run is about. Never persisted, never in a URL. */
+  task: '',
   questionIndex: 0,
   answers: emptyAnswers(),
   result: null
+};
+
+/** Share-dialog working state. Cleared whenever a fresh result is rendered. */
+const share = {
+  /** The prepared PNG, or null while it is still rendering or after it failed. */
+  blob: null,
+  /**
+   * Whether the PNG actually reached the clipboard.
+   *
+   * Deliberately separate from `blob`. A prepared Blob says the card was drawn, not that the
+   * browser accepted a clipboard write, and the two fail independently: a popup can be blocked
+   * while the clipboard also refuses. Inferring one from the other is how the user ends up being
+   * told to paste an image that was never copied.
+   */
+  imageCopied: false,
+  /** Guards against two overlapping preparations for different results. */
+  token: 0
 };
 
 /* -------------------------------------------------------------------- dom */
@@ -82,6 +106,14 @@ const dom = {
     question: byId('question-heading'),
     result: byId('result-heading')
   },
+  taskPresets: byId('task-presets'),
+  taskInput: byId('task-input'),
+  taskCounter: byId('task-counter'),
+  taskError: byId('task-error'),
+  begin: document.querySelector('[data-action="begin"]'),
+  questionTaskValue: byId('question-task-value'),
+  resultTaskValue: byId('result-task-value'),
+  resultPilotScope: byId('result-pilot-scope'),
   progressCount: byId('progress-count'),
   progressDimension: byId('progress-dimension'),
   progressTrack: byId('progress-track'),
@@ -96,13 +128,14 @@ const dom = {
   resultIndex: byId('result-index'),
   resultSummary: byId('result-summary'),
   shareOpen: byId('share-open'),
-  shareStatus: byId('share-status'),
   shareDialog: byId('share-dialog'),
   shareDialogHeading: byId('share-dialog-heading'),
   shareDraft: byId('share-draft'),
   shareNote: byId('share-note'),
   shareDialogStatus: byId('share-dialog-status'),
   shareConfirm: byId('share-confirm'),
+  shareRetryCopy: byId('share-retry-copy'),
+  shareOpenLinkedIn: byId('share-open-linkedin'),
   sharePreview: byId('share-preview'),
   resultProfiles: byId('result-profiles'),
   resultStrength: byId('result-strength'),
@@ -111,6 +144,103 @@ const dom = {
   methodology: byId('methodology'),
   methodologyHeading: byId('methodology-heading')
 };
+
+/* ------------------------------------------------------------------ task */
+
+/**
+ * The instruction screen collects the one task the whole check-up is about.
+ *
+ * The value is normalized on every read, so control characters, bidi overrides and stray
+ * whitespace never reach the DOM, the draft, or the length counter. It is written with
+ * `textContent` everywhere and is deliberately kept out of URLs, storage and the card.
+ */
+function currentTaskInput() {
+  return normalizeTask(dom.taskInput.value);
+}
+
+function renderTaskPresets() {
+  dom.taskPresets.replaceChildren(...TASK_COPY.presets.map((label) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'taskpick__preset';
+    button.textContent = label;
+    button.dataset.preset = label;
+    return button;
+  }));
+}
+
+/** Keep the counter, the CTA and the error message in step with the field. */
+function syncTaskInput() {
+  const normalized = currentTaskInput();
+  const length = taskLength(normalized);
+  const valid = isValidTask(dom.taskInput.value);
+
+  dom.taskCounter.textContent = TASK_COPY.counterTemplate.replace('{count}', String(length));
+  if (length > TASK_LIMITS.max) dom.taskCounter.dataset.over = 'true';
+  else delete dom.taskCounter.dataset.over;
+
+  dom.begin.disabled = !valid;
+  if (valid) hideTaskError();
+}
+
+function showTaskError(message) {
+  dom.taskError.textContent = message;
+  dom.taskError.hidden = false;
+}
+
+function hideTaskError() {
+  dom.taskError.textContent = '';
+  dom.taskError.hidden = true;
+}
+
+function applyPreset(label) {
+  if (label === TASK_COPY.freeWritePreset) dom.taskInput.value = '';
+  else dom.taskInput.value = label;
+  syncTaskInput();
+  dom.taskInput.focus();
+}
+
+/** Show the instruction screen, restoring whatever task the run already has. */
+function openInstructions() {
+  dom.taskInput.value = state.task;
+  syncTaskInput();
+  hideTaskError();
+  showScreen('instructions');
+}
+
+/**
+ * Leave the instruction screen for Q1.
+ *
+ * Existing answers survive a task edit on purpose: the user is renaming the subject of the
+ * run, not restarting it.
+ */
+function beginRun() {
+  const normalized = currentTaskInput();
+  if (!isValidTask(normalized)) {
+    showTaskError(taskLength(normalized) > TASK_LIMITS.max
+      ? TASK_COPY.errorTooLong
+      : TASK_COPY.errorTooShort);
+    dom.taskInput.focus();
+    return;
+  }
+
+  const firstRun = state.task === '';
+  state.task = normalized;
+  hideTaskError();
+
+  if (firstRun) {
+    markStart();
+    track('game_start', { game: GAME });
+    track('guc_start', { variant: 'tr' });
+    stage('start');
+  }
+  goToQuestion(state.questionIndex);
+}
+
+/** Paint the task context block on a screen. Text only, never markup. */
+function renderTaskContext(node) {
+  node.textContent = state.task ? `\u201C${state.task}\u201D` : '';
+}
 
 /* --------------------------------------------------------------- screens */
 
@@ -207,6 +337,8 @@ function renderQuestion() {
     else step.removeAttribute('data-state');
   });
 
+  renderTaskContext(dom.questionTaskValue);
+
   dom.headings.question.textContent = question.text;
   dom.choices.replaceChildren(
     ...question.options.map((label, value) => buildChoice(question, label, value))
@@ -221,7 +353,8 @@ function renderQuestion() {
     dom.help.hidden = true;
   }
 
-  dom.back.hidden = state.questionIndex === 0;
+  // Back is available on Q1 as well: it is the route back to editing the task.
+  dom.back.hidden = false;
   dom.next.textContent = position === QUESTIONS.length ? UI_COPY.finish : UI_COPY.next;
 
   syncSelection();
@@ -275,7 +408,11 @@ function advance() {
 }
 
 function goBack() {
-  if (state.questionIndex === 0) return;
+  if (state.questionIndex === 0) {
+    openInstructions();
+    dom.headings.instructions.focus({ preventScroll: true });
+    return;
+  }
   goToQuestion(state.questionIndex - 1);
 }
 
@@ -389,6 +526,11 @@ function renderResult() {
     })
   );
 
+  renderTaskContext(dom.resultTaskValue);
+  dom.resultPilotScope.textContent = state.task
+    ? UI_COPY.pilotScope.replace('{task}', state.task)
+    : '';
+  dom.resultPilotScope.hidden = !state.task;
   dom.resultExperiment.textContent = archetype.experiment;
 
   resetShare();
@@ -396,22 +538,20 @@ function renderResult() {
 
 /* ----------------------------------------------------------------- sharing */
 
-function setShareStatus(message, tone) {
-  dom.shareStatus.textContent = message || '';
-  if (tone) dom.shareStatus.dataset.tone = tone;
-  else delete dom.shareStatus.dataset.tone;
-}
-
 /**
  * Reset the share block for a freshly rendered result.
  *
- * The public result exposes one share action. The dialog then adapts that action to native
- * file sharing or a desktop package of editable text, downloaded card and LinkedIn composer.
+ * The public result exposes one share action. The dialog then adapts that action to the
+ * native sheet on a touch device, or to the LinkedIn composer route everywhere else.
  */
 function resetShare() {
-  setShareStatus('');
   dom.shareOpen.disabled = false;
-  dom.shareDialogStatus.textContent = '';
+  setDialogStatus('');
+  share.blob = null;
+  share.imageCopied = false;
+  share.token += 1;
+  dom.shareRetryCopy.hidden = true;
+  dom.shareOpenLinkedIn.hidden = true;
 }
 
 function shareBusy(busy) {
@@ -419,93 +559,244 @@ function shareBusy(busy) {
   dom.shareConfirm.disabled = busy;
 }
 
+function setDialogStatus(message, tone) {
+  dom.shareDialogStatus.textContent = message || '';
+  if (tone) dom.shareDialogStatus.dataset.tone = tone;
+  else dom.shareDialogStatus.removeAttribute('data-tone');
+}
+
 /**
- * Both platform-specific share routes start here, so intent is recorded consistently.
+ * Both share routes start here, so intent is recorded consistently.
  *
- * It fires when the action begins, not when it finishes, so a cancelled sheet, a failed
- * clipboard write and a successful download are all counted as the same intent. The staged
- * address is for the Insight Tag only. The share module builds a separate allowlisted UTM
- * URL and never copies the staged address into the post.
+ * It fires when the action begins, not when it finishes, so a cancelled sheet, a refused
+ * clipboard and a successful composer hand-off are all counted as the same intent. The
+ * staged address is for the Insight Tag only; the draft carries its own campaign URL and
+ * never the staged address.
  *
- * @param {'native'|'desktop'} method
+ * @param {'native'|'linkedin'|'x'} method
  */
 function beginShareIntent(method) {
   track('share_click', { game: GAME, method });
   stage('share');
 }
 
+/** The text the user will actually post: whatever is in the box right now. */
+function currentDraft() {
+  return dom.shareDraft.value;
+}
+
+/**
+ * Open the LinkedIn composer in a popup with no usable opener back-reference.
+ *
+ * Both the primary share and the blocked-popup retry go through here, so they cannot drift apart
+ * on the security detail. The window is opened blank and navigated afterwards: that keeps the
+ * open inside the user gesture on the primary path and lets the clipboard write share the same
+ * gesture.
+ *
+ * `noopener` is deliberately *not* in the feature string. Browsers that honour it return `null`
+ * instead of a window, which would make the blank-then-navigate sequence impossible. Severing
+ * `opener` on the still-same-origin about:blank window, before the cross-origin navigation is
+ * started, achieves the same protection while leaving us a handle to navigate.
+ *
+ * @returns {boolean} whether the composer was opened and navigated
+ */
+function openComposerPopup(composerUrl) {
+  const popup = window.open('', '_blank', 'width=600,height=600');
+  if (!popup) return false;
+  try {
+    popup.opener = null;
+    popup.location.href = composerUrl;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** True when this device should get the OS share sheet rather than the composer. */
+function useNativeRoute() {
+  return prefersNativeShare(window);
+}
+
+/** The route note is route-specific but not blob-dependent, so it is set as soon as the
+ * dialog opens rather than after the card resolves. */
+function applyShareNote() {
+  dom.shareNote.textContent = useNativeRoute()
+    ? "Metin ve sonuç karnesi paylaşım ekranına birlikte aktarılır. LinkedIn'i seçtikten sonra postu düzenleyebilir veya olduğu gibi yayımlayabilirsiniz."
+    : "Devam ettiğinizde LinkedIn yeni bir sekmede post metninizle açılır ve sonuç karneniz panonuza kopyalanır. Görseli gönderiye kendiniz yapıştırırsınız.";
+}
+
+/** Show the preparing state until the Blob resolves, then enable the real action. */
+function setPreparing(preparing) {
+  dom.shareConfirm.disabled = preparing;
+  dom.shareConfirm.dataset.state = preparing ? 'preparing' : 'ready';
+  dom.shareConfirm.textContent = preparing
+    ? UI_COPY.cardPreparing
+    : (useNativeRoute() ? UI_COPY.shareNative : UI_COPY.shareLinkedIn);
+}
+
+/**
+ * Render the card in the background while the user reads and edits the draft.
+ *
+ * A card failure is reported but does not block the run: the text route still works, and
+ * saying so is more useful than refusing to open the dialog.
+ */
+async function prepareCard() {
+  const token = share.token;
+  setPreparing(true);
+  try {
+    const blob = await renderCardBlob(state.result);
+    if (token !== share.token) return;
+    share.blob = blob;
+    setPreparing(false);
+  } catch {
+    if (token !== share.token) return;
+    share.blob = null;
+    setPreparing(false);
+    setDialogStatus(UI_COPY.cardError, 'error');
+    track('guc_error', { area: 'card' });
+  }
+}
+
 function openShareDialog() {
   if (!state.result) return;
-  dom.shareDraft.value = buildLinkedInDraft(state.result);
-  dom.shareDialogStatus.textContent = '';
-  dom.shareDialogStatus.removeAttribute('data-tone');
-  const native = supportsFileShare();
-  dom.shareConfirm.textContent = native ? 'Paylaşım ekranını aç' : 'Metni ve karneyi hazırla';
-  dom.shareNote.textContent = native
-    ? "Cihazınız destekliyorsa metin ve sonuç karnesi paylaşım ekranına birlikte aktarılır. LinkedIn'i seçtikten sonra postu düzenleyebilir veya olduğu gibi yayımlayabilirsiniz."
-    : "Masaüstü tarayıcıları LinkedIn'e görseli otomatik yükleyemez. Devam ettiğinizde post metni kopyalanır, sonuç karnesi indirilir ve LinkedIn açılır. İndirilen görseli posta eklemeniz gerekir.";
+  share.token += 1;
+  share.blob = null;
+  // Every newly opened dialog starts with nothing on the clipboard.
+  share.imageCopied = false;
+  dom.shareDraft.value = buildLinkedInDraft(state.result, state.task);
+  setDialogStatus('');
+  dom.shareRetryCopy.hidden = true;
+  dom.shareOpenLinkedIn.hidden = true;
+  dom.shareRetryCopy.textContent = UI_COPY.clipboardRetry;
+  dom.shareOpenLinkedIn.textContent = UI_COPY.popupBlockedAction;
+  applyShareNote();
+  setPreparing(true);
 
   try {
     const canvas = renderCard(state.result);
     canvas.setAttribute('aria-hidden', 'true');
     dom.sharePreview.replaceChildren(canvas);
   } catch {
-    setShareStatus(UI_COPY.cardError, 'error');
-    track('guc_error', { area: 'card' });
-    return;
+    dom.sharePreview.replaceChildren();
   }
+
   dom.shareDialog.showModal();
   dom.shareDialogHeading.focus({ preventScroll: true });
+  prepareCard();
 }
 
 function closeShareDialog() {
   if (dom.shareDialog.open) dom.shareDialog.close();
 }
 
+/**
+ * The LinkedIn route, modelled on the two live Worst Onboarding games.
+ *
+ * Everything that needs the user gesture happens synchronously inside it: the popup is
+ * opened blank first so the browser still treats it as user-initiated, the clipboard write
+ * is *called* (not awaited) in the same tick, and only then is the popup navigated. The
+ * awaits come afterwards, once the privileged work has been requested.
+ *
+ * The composer `text` parameter is undocumented LinkedIn behaviour rather than a supported
+ * API, so nothing here depends on it succeeding: the draft stays in the textarea and the
+ * card stays on the clipboard either way.
+ */
+async function shareToLinkedIn() {
+  const draft = currentDraft();
+  const composer = linkedInComposerUrl(draft);
+
+  // Everything privileged is requested inside the gesture: the popup opens blank first, the
+  // clipboard write is called (not awaited) next, and only then do we wait for results.
+  const opened = openComposerPopup(composer);
+  const copying = share.blob ? copyImage(share.blob, window) : Promise.reject(new ShareSheetError('no card'));
+  // Swallow the rejection here so an unawaited promise never becomes an unhandled error.
+  const wrote = await copying.then(() => true, () => false);
+
+  share.imageCopied = wrote;
+
+  if (!opened) {
+    setDialogStatus(UI_COPY.popupBlocked, 'error');
+    dom.shareOpenLinkedIn.hidden = false;
+    if (!wrote) dom.shareRetryCopy.hidden = false;
+    track('guc_error', { area: 'share' });
+    return;
+  }
+
+  if (wrote) {
+    setDialogStatus(UI_COPY.shareOpened);
+    dom.shareRetryCopy.hidden = true;
+  } else {
+    setDialogStatus(UI_COPY.clipboardFailure, 'error');
+    dom.shareRetryCopy.hidden = false;
+    track('guc_error', { area: 'clipboard' });
+  }
+  track('guc_share_success', { method: 'linkedin', archetype: state.result.archetype });
+}
+
+/** The native sheet, used only on a genuinely coarse-pointer device. */
+async function shareToNativeSheet() {
+  const outcome = await shareCard(state.result, currentDraft(), share.blob);
+  if (outcome === 'shared') {
+    setDialogStatus('');
+    closeShareDialog();
+    track('guc_share_success', { method: 'native', archetype: state.result.archetype });
+  } else {
+    setDialogStatus(UI_COPY.shareCancelled);
+    track('guc_share_cancel', { archetype: state.result.archetype });
+  }
+}
+
 async function handleShareConfirm() {
   if (!state.result) return;
+  const native = useNativeRoute();
   shareBusy(true);
-  const native = supportsFileShare();
-  beginShareIntent(native ? 'native' : 'desktop');
+  beginShareIntent(native ? 'native' : 'linkedin');
   try {
-    if (native) {
-      const outcome = await shareCard(state.result, dom.shareDraft.value);
-      if (outcome === 'shared') {
-        dom.shareDialogStatus.textContent = '';
-        closeShareDialog();
-        setShareStatus('');
-        track('guc_share_success', { method: 'native', archetype: state.result.archetype });
-      } else {
-        dom.shareDialogStatus.textContent = UI_COPY.shareCancelled;
-        track('guc_share_cancel', { archetype: state.result.archetype });
-      }
-      return;
-    }
-
-    window.open(LINKEDIN_COMPOSER_URL, '_blank', 'noopener,noreferrer');
-    let copied = true;
-    try {
-      await copyText(dom.shareDraft.value);
-    } catch {
-      copied = false;
-      track('guc_error', { area: 'clipboard' });
-    }
-    await downloadCard(state.result);
-    const message = copied ? UI_COPY.desktopPrepared : UI_COPY.copyFailure;
-    dom.shareDialogStatus.textContent = message;
-    if (copied) dom.shareDialogStatus.removeAttribute('data-tone');
-    else dom.shareDialogStatus.dataset.tone = 'error';
-    setShareStatus(message, copied ? undefined : 'error');
-    track('guc_card_download', { archetype: state.result.archetype });
-    track('guc_share_success', { method: 'desktop', archetype: state.result.archetype });
+    if (native) await shareToNativeSheet();
+    else await shareToLinkedIn();
   } catch (error) {
     const sheetFailed = error instanceof ShareSheetError;
-    const message = sheetFailed ? UI_COPY.shareFailure : UI_COPY.cardError;
-    dom.shareDialogStatus.textContent = message;
-    dom.shareDialogStatus.dataset.tone = 'error';
+    setDialogStatus(sheetFailed ? UI_COPY.shareFailure : UI_COPY.cardError, 'error');
     if (!sheetFailed) track('guc_error', { area: 'card' });
   } finally {
     shareBusy(false);
+  }
+}
+
+/** Retry only the image copy. It must never open a second LinkedIn tab. */
+async function retryCopyImage() {
+  try {
+    await copyImage(share.blob, window);
+    share.imageCopied = true;
+    setDialogStatus(UI_COPY.clipboardRetrySuccess);
+    dom.shareRetryCopy.hidden = true;
+  } catch {
+    share.imageCopied = false;
+    setDialogStatus(UI_COPY.clipboardRetryFailure, 'error');
+    track('guc_error', { area: 'clipboard' });
+  }
+}
+
+/**
+ * Retry only the tab, after the browser blocked the first one.
+ *
+ * Opening a window says nothing about the clipboard, so this reports `share.imageCopied` rather
+ * than guessing from the Blob. If the clipboard refused earlier, the message must stay a failure
+ * message and the copy retry must stay on screen, even though LinkedIn is now open.
+ */
+function retryOpenLinkedIn() {
+  const opened = openComposerPopup(linkedInComposerUrl(currentDraft()));
+  if (!opened) {
+    setDialogStatus(UI_COPY.popupBlocked, 'error');
+    return;
+  }
+  dom.shareOpenLinkedIn.hidden = true;
+  if (share.imageCopied) {
+    setDialogStatus(UI_COPY.shareOpened);
+    dom.shareRetryCopy.hidden = true;
+  } else {
+    setDialogStatus(UI_COPY.clipboardFailure, 'error');
+    dom.shareRetryCopy.hidden = false;
   }
 }
 
@@ -518,9 +809,13 @@ function restoreShareTrigger() {
 function restart() {
   if (state.result) track('guc_restart', { archetype: state.result.archetype });
   resetOnceGuards();
+  state.task = '';
   state.questionIndex = 0;
   state.answers = emptyAnswers();
   state.result = null;
+  dom.taskInput.value = '';
+  syncTaskInput();
+  hideTaskError();
 
   dom.choices.replaceChildren();
   clearError();
@@ -573,14 +868,10 @@ function closeMethodology() {
 function handleAction(action, trigger) {
   switch (action) {
     case 'start':
-      showScreen('instructions');
+      openInstructions();
       break;
     case 'begin':
-      markStart();
-      track('game_start', { game: GAME });
-      track('guc_start', { variant: 'tr' });
-      stage('start');
-      goToQuestion(0);
+      beginRun();
       break;
     case 'back':
       goBack();
@@ -604,6 +895,12 @@ function handleAction(action, trigger) {
     case 'share-close':
       closeShareDialog();
       break;
+    case 'share-retry-copy':
+      retryCopyImage();
+      break;
+    case 'share-open-linkedin':
+      retryOpenLinkedIn();
+      break;
     case 'partner':
       track('cta_click', {
         destination: trigger.dataset.destination,
@@ -621,6 +918,22 @@ function bindEvents() {
     if (!(event.target instanceof Element)) return;
     const trigger = event.target.closest('[data-action]');
     if (trigger) handleAction(trigger.dataset.action, trigger);
+  });
+
+  renderTaskPresets();
+  syncTaskInput();
+
+  dom.taskPresets.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) return;
+    const preset = event.target.closest('[data-preset]');
+    if (preset) applyPreset(preset.dataset.preset);
+  });
+
+  dom.taskInput.addEventListener('input', syncTaskInput);
+  dom.taskInput.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    beginRun();
   });
 
   dom.choices.addEventListener('change', (event) => {
