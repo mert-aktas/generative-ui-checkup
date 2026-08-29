@@ -360,10 +360,15 @@ export const CARD_COPY = deepFreeze({
 /**
  * Editable post copy. `{archetype}`, `{strength}`, `{experiment}` and `{url}` are always
  * replaced; the `{task}` line is dropped whole when no task is available.
+ *
+ * `{url}` is deliberately not the last thing in the text. LinkedIn's composer strips a trailing
+ * URL out of the caption while it builds the link preview, so a draft that ends on the link
+ * arrives with the link missing. Copy after the URL is what keeps it. Do not "tidy" the link
+ * back to the end; a test fails if anything does.
  */
 export const SHARE_COPY = deepFreeze({
   title: "Generative UI Check-up sonucum",
-  text: "Generative UI Check-up sonucum: {archetype}\n\nDeğerlendirdiğim görev: {task}\n\nBugünkü güçlü temelim:\n{strength}\n\nİlk pilot adımım:\n{experiment}\n\nSizce ürününüz Generative UI için ne kadar hazır?\n{url}",
+  text: "Generative UI Check-up sonucum: {archetype}\n\nDeğerlendirdiğim görev: {task}\n\nBugünkü güçlü temelim:\n{strength}\n\nİlk pilot adımım:\n{experiment}\n\nCheck-up burada: {url}\n\nSizce ürününüz Generative UI için ne kadar hazır?",
   taskLine: "Değerlendirdiğim görev: {task}",
   url: "https://games.userguiding.com/generative-ui-checkup/?utm_source=generative_ui_checkup"
 });
