@@ -170,11 +170,36 @@ const TASK_BIDI = /[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/g;
  * minimum. Without this, a task of three zero-width spaces validates and then displays as an
  * empty pair of quotes.
  *
- * Variation selectors (U+FE00-U+FE0F) are deliberately *not* in this set. They cannot pad a
- * length on their own because they only ever follow a base character, and stripping them would
- * silently rewrite the user's emoji, turning a text-presentation sequence into a different glyph.
+ * Variation selectors are deliberately *not* in this set, because stripping them would
+ * silently rewrite the user's emoji, turning a text-presentation sequence into a different
+ * glyph. They are excluded from the count instead: see `TASK_VARIATION_SELECTOR`.
  */
 const TASK_INVISIBLE = /[\u00AD\u180E\u200B-\u200D\u2060-\u2064\uFEFF\uFFF9-\uFFFB]/g;
+
+/**
+ * Every Unicode variation selector, asked of Unicode rather than listed here.
+ *
+ * Kept in the string, counted as nothing. O-002, ruled at Gate 8, separated two decisions the
+ * original implementation had merged into one. Preserving a selector attached to a base
+ * character is right, because removing it changes the glyph the user chose. But a selector
+ * renders nothing on its own, and counting it as a character let three of them in a row
+ * satisfy the three-character minimum and then display as an empty pair of quotes.
+ *
+ * The reasoning this replaced \u2014 that a selector "cannot pad a length on its own because it
+ * only ever follows a base character" \u2014 described valid text, not the input a validator is
+ * handed. Nothing stops a user pasting three bare selectors, and that is what shipped.
+ *
+ * **Why a property escape and not a range list.** Phase 9 fixed this by enumerating
+ * `U+FE00`-`U+FE0F` and `U+E0100`-`U+E01EF`, and silently omitted the Mongolian free
+ * variation selectors `U+180B`-`U+180D` and `U+180F`; Gate 9 found three of them still
+ * validating and still rendering as nothing. The list was wrong the day it was written and
+ * would rot again whenever Unicode adds a selector. `\p{Variation_Selector}` is the same
+ * question asked of the standard, so there is no list to keep current.
+ *
+ * `U+180E`, the Mongolian vowel separator, is deliberately not here. It is a separator rather
+ * than a selector, it is not in this property, and `TASK_INVISIBLE` already strips it.
+ */
+const TASK_VARIATION_SELECTOR = /\p{Variation_Selector}/gu;
 
 /**
  * Normalize a raw task value: drop characters that can lie about their own rendering or occupy
@@ -196,9 +221,17 @@ export function normalizeTask(raw) {
     .trim();
 }
 
-/** Length in Unicode code points, so one emoji counts as one character. */
+/**
+ * Length in *visible* Unicode code points, so one emoji counts as one character.
+ *
+ * Variation selectors are dropped for counting only; the value itself keeps them, so what the
+ * user typed is what gets rendered and shared. This is the one place the O-002 ruling is
+ * enforced, which is why both the minimum, the maximum and the on-screen counter agree with
+ * each other: they all ask this function.
+ */
 export function taskLength(value) {
-  return typeof value === "string" ? [...value].length : 0;
+  if (typeof value !== "string") return 0;
+  return [...value.replace(TASK_VARIATION_SELECTOR, "")].length;
 }
 
 /** True when a raw value normalizes to something inside the documented limits. */
@@ -227,6 +260,37 @@ export const TASK_COPY = deepFreeze({
   errorTooShort: "Devam etmek için en az 3 karakterlik bir görev yazın.",
   errorTooLong: "Görev en fazla 80 karakter olabilir."
 });
+
+/**
+ * The four real presets: the list minus the free-write affordance.
+ *
+ * `freeWritePreset` is a button that clears the field, not a task anyone is assessing. If it
+ * were left in this list, choosing "I'll write my own" and then typing nothing would report
+ * a preset, which inverts the one distinction the parameter exists to make.
+ *
+ * Normalized on the way in so the comparison in `taskSource` is against the same shape the
+ * user's input is reduced to.
+ */
+const REAL_PRESETS = deepFreeze(
+  TASK_COPY.presets
+    .filter((preset) => preset !== TASK_COPY.freeWritePreset)
+    .map(normalizeTask)
+);
+
+/**
+ * Whether a task is one of the offered presets or the user's own words.
+ *
+ * Derived by comparison, never remembered: a user who picks a preset and then edits one word
+ * is writing a custom task, and any stored "they clicked the preset button" flag would keep
+ * claiming otherwise. Stateless and deterministic, so the same task always reports the same
+ * source no matter which route reached it.
+ *
+ * @param {string} raw
+ * @returns {"preset"|"custom"}
+ */
+export function taskSource(raw) {
+  return REAL_PRESETS.includes(normalizeTask(raw)) ? "preset" : "custom";
+}
 
 export const PROFILE_NAMES = deepFreeze({
   valueFit: "Kullanım senaryosu",
@@ -328,11 +392,17 @@ export const UI_COPY = deepFreeze({
   cardPreparing: "Karne hazırlanıyor…",
   shareLinkedIn: "LinkedIn'de paylaş",
   shareNative: "Paylaşım ekranını aç",
-  shareOpened: "LinkedIn açıldı. Karne görselini gönderiye eklemek için Cmd+V veya Ctrl+V kullanın.",
-  clipboardFailure: "Post metniniz LinkedIn'de açıldı, ancak karne görseli panoya kopyalanamadı. Görseli yeniden kopyalamayı deneyebilir veya sonuç ekranının görüntüsünü alabilirsiniz.",
-  clipboardRetry: "Görseli yeniden kopyala",
-  clipboardRetrySuccess: "Karne görseli panoya kopyalandı. LinkedIn sekmesinde Cmd+V veya Ctrl+V ile ekleyebilirsiniz.",
-  clipboardRetryFailure: "Karne görseli yine kopyalanamadı. Sonuç ekranının görüntüsünü alıp postunuza ekleyebilirsiniz.",
+  shareNoteDesktop: "Devam ettiğinizde yeni bir sekmede sonuç karneniz açılır. Karneyi oradan kopyalayıp LinkedIn'e geçeceksiniz.",
+  shareNoteNative: "Metin ve sonuç karnesi paylaşım ekranına birlikte aktarılır. LinkedIn'i seçtikten sonra postu düzenleyebilir veya olduğu gibi yayımlayabilirsiniz.",
+  shareOpened: "Yeni sekme açıldı. Oradaki adımları izleyin.",
+  handoffHeading: "Karneyi gönderinize ekleyin",
+  handoffInstruction: "Karneye sağ tıklayın, \u201CResmi kopyala\u201D deyin, sonra LinkedIn gönderinize yapıştırın.",
+  handoffDownloadNote: "Karneyi indirip gönderinize de ekleyebilirsiniz.",
+  handoffDownloadAction: "Karneyi indir",
+  handoffDraftNote: "Post metniniz önceki sekmedeki kutuda duruyor.",
+  handoffAction: "LinkedIn'e git",
+  handoffCardAlt: "Sonuç karneniz",
+  colophon: "Soft Commitment x UserGuiding iş birliğiyle hazırlandı.",
   popupBlocked: "Tarayıcı yeni sekmeyi engelledi. Metniniz burada duruyor; LinkedIn'i aşağıdaki düğmeden açabilirsiniz.",
   popupBlockedAction: "LinkedIn'i aç",
   shareCancelled: "Paylaşım iptal edildi. Metniniz burada duruyor; hazır olduğunuzda yeniden deneyebilirsiniz.",
@@ -361,14 +431,22 @@ export const CARD_COPY = deepFreeze({
  * Editable post copy. `{archetype}`, `{strength}`, `{experiment}` and `{url}` are always
  * replaced; the `{task}` line is dropped whole when no task is available.
  *
- * `{url}` is deliberately not the last thing in the text. LinkedIn's composer strips a trailing
- * URL out of the caption while it builds the link preview, so a draft that ends on the link
- * arrives with the link missing. Copy after the URL is what keeps it. Do not "tidy" the link
- * back to the end; a test fails if anything does.
+ * `{url}` sits in the second block, directly under the headline, and is deliberately neither
+ * first nor last.
+ *
+ * Not last, because LinkedIn's composer strips a trailing URL out of the caption while it
+ * builds the link preview, so a draft that ends on the link arrives with the link missing.
+ * Copy after the URL is what keeps it. Do not "tidy" the link back to the end.
+ *
+ * High, because LinkedIn collapses the caption behind "…more" after a couple of lines (O-013).
+ * The link used to sit second from last, which satisfied the strip rule while burying the link
+ * under the entire post, where a reader who does not expand never sees it.
+ *
+ * Both positions are pinned by tests, and they bracket the link from either side.
  */
 export const SHARE_COPY = deepFreeze({
   title: "Generative UI Check-up sonucum",
-  text: "Generative UI Check-up sonucum: {archetype}\n\nDeğerlendirdiğim görev: {task}\n\nBugünkü güçlü temelim:\n{strength}\n\nİlk pilot adımım:\n{experiment}\n\nCheck-up burada: {url}\n\nSizce ürününüz Generative UI için ne kadar hazır?",
+  text: "Generative UI Check-up sonucum: {archetype}\n\nCheck-up burada: {url}\n\nDeğerlendirdiğim görev: {task}\n\nBugünkü güçlü temelim:\n{strength}\n\nİlk pilot adımım:\n{experiment}\n\nSizce ürününüz Generative UI için ne kadar hazır?",
   taskLine: "Değerlendirdiğim görev: {task}",
   url: "https://games.userguiding.com/generative-ui-checkup/?utm_source=generative_ui_checkup"
 });

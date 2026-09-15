@@ -9,22 +9,58 @@
   Pages cannot set response headers.
 
   It describes exactly what this build loads: its own module scripts, its own stylesheet,
-  its own SVG assets, and nothing else. Canvas export needs no allowance: the PNG is handed
-  to the clipboard or to the OS share sheet, and nothing is ever downloaded, so neither needs
-  a network directive. Opening the LinkedIn composer is a user-initiated navigation, which CSP
-  does not govern.
+  its own SVG assets, and nothing else. Canvas export needs no network allowance: the PNG becomes
+  a data URL rendered into the hand-off window, which `img-src data:` already covers, or a file
+  handed to the OS share sheet. Opening the LinkedIn composer is a user-initiated navigation,
+  which CSP does not govern.
+
+  Downloads, corrected 2026-09-14. This paragraph used to end "and nothing is ever downloaded".
+  D-010 added a download control to the hand-off window, so that sentence would have shipped
+  false the moment the control did; it is withdrawn rather than qualified, because it was an
+  absolute claim and the qualified version is a different sentence. What is true now: the
+  control saves the same data URL the card is rendered from, and only when the user presses it.
+  Nothing downloads on its own, which is what PRODUCT-SPEC.md has always prohibited — it rules
+  out an *automatic* download, and always did, so D-010 did not need it relaxed.
+
+  No directive was added for the download, and that is a measurement rather than an inference
+  about which directives govern navigations. The popup inherits this policy; activating the
+  control there fires the download and emits no securitypolicyviolation event. The evidence is
+  an executed browser assertion, not this comment: see "downloads under the shipped CSP without
+  provoking a violation" in tests/smoke.spec.js. True of Playwright's pinned Chromium, which is
+  the only browser this suite runs.
 
   frame-ancestors and report-uri are deliberately absent: a meta-delivered policy ignores
   them, and including them only produces console warnings. The host should send those two
   as real headers.
 
-  When Mert confirms the GA4 and LinkedIn properties, analytics needs exactly:
-    script-src  + https://www.googletagmanager.com https://snap.licdn.com
-    img-src     + https://www.google-analytics.com https://px.ads.linkedin.com
-    connect-src + https://www.google-analytics.com https://region1.google-analytics.com
-  Nothing is added until then, so the policy permits only the implemented sources.
+  GA4, activated in Phase 17. Four origins were added and no more:
+    script-src  + https://www.googletagmanager.com         the tag itself
+    connect-src + https://www.google-analytics.com
+                  https://region1.google-analytics.com     where gtag.js posts collect
+                  https://region1.analytics.google.com     the second collection family
+
+  The fourth is not optional and not an oversight: current tag-platform CSP guidance names both
+  the google-analytics.com and analytics.google.com collection families, and a regional property
+  uses both. The Phase 17 contract criterion says "exactly three analytics sources" and was
+  written before that was measured. **The shipped policy is right and the criterion is stale;
+  ratifying the amendment is Mert's, tracked as O-034.** This comment said "three sources" while
+  four shipped, which is the contradiction a future maintainer would have edited against.
+
+  The planning note this replaces also listed `https://snap.licdn.com` under script-src and
+  `https://px.ads.linkedin.com` under img-src. **Both are deliberately absent.** They are the
+  LinkedIn Insight Tag, which is out of scope: `linkedInPartnerId` is still empty, `stage()`
+  is inert, and a CSP that permits a vendor the page never loads is a standing invitation to
+  load it without a decision. The img-src entry for google-analytics.com is not added either;
+  gtag.js posts to the collect endpoint over connect-src, and this build provokes no img-src
+  violation. That is an executed assertion, not an expectation: see "fires no CSP violation
+  during a complete instrumented run" in tests/smoke.spec.js.
+
+  There is no inline script anywhere in this file, and `script-src` carries neither
+  'unsafe-inline' nor a nonce — a meta-delivered policy cannot supply one. Google's published
+  bootstrap snippet is inline and would be blocked, so the bootstrap is a same-origin module,
+  ./js/ga4-bootstrap.js, which injects the vendor tag itself.
 -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.googletagmanager.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src https://www.google-analytics.com https://region1.google-analytics.com https://region1.analytics.google.com; base-uri 'none'; form-action 'none'">
 
 <title>Generative UI Check-up | Soft Commitment x UserGuiding</title>
 <meta name="description" content="8 soruda ürününüzün Generative UI için kullanım senaryosunu, teknik zeminini, güvenlik sınırlarını ve keşfedilebilirliğini değerlendirin.">
@@ -257,7 +293,6 @@
       <p class="shareprep__status" id="share-dialog-status" role="status"></p>
       <div class="shareprep__actions">
         <button class="button button--primary" type="button" data-action="share-confirm" id="share-confirm" data-state="preparing" disabled></button>
-        <button class="button button--quiet" type="button" data-action="share-retry-copy" id="share-retry-copy" hidden></button>
         <button class="button button--quiet" type="button" data-action="share-open-linkedin" id="share-open-linkedin" hidden></button>
         <button class="link" type="button" data-action="share-close">Kapat</button>
       </div>
@@ -266,6 +301,13 @@
   </div>
 </dialog>
 
+<!--
+  Both modules, so both are deferred and neither blocks the first paint. The bootstrap
+  queues its commands on window.dataLayer, which the vendor tag drains whenever it arrives,
+  so the order of these two relative to the injected tag does not matter. Every measured
+  event follows a user action, long after both have run.
+-->
+<script type="module" src="./js/ga4-bootstrap.js"></script>
 <script type="module" src="./js/app.js"></script>
 </body>
 </html>

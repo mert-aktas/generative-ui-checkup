@@ -5,28 +5,47 @@
  * against the allowlist and per-event schemas in ../../ANALYTICS.md first: unknown event
  * names are dropped, unknown parameters are dropped, and out-of-range values are dropped.
  *
- * What never leaves the browser: raw answer values, answer labels, the 0-6 profile scores,
- * an exact duration, any company or identity field, and any query parameter that is not an
- * allowlisted, well-formed UTM.
+ * What never leaves the browser: answer *labels*, the 0-6 profile scores, an exact duration,
+ * any company or identity field, and any query parameter that is not an allowlisted,
+ * well-formed UTM.
+ *
+ * What does, as of Phase 17 and decision D-011: the selected option index on `guc_answer`,
+ * and the user's task as free text on `guc_start`, bounded for transport by `boundTaskText`
+ * below. The header used to list "raw answer values" and free text among the things that
+ * never leave; both are now sent by decision, and the list above is the part that did not
+ * change. The contract widened by exactly two parameters and must not be read as open.
  *
  * The adapter cannot break the experience. Every public call is wrapped so a missing,
  * blocked or throwing tracker is swallowed. Nothing is queued for retry: an event that
  * cannot be sent right now is simply dropped.
  *
- * `enabled` is false until Mert confirms that this campaign belongs in the existing GA4
- * and LinkedIn properties. Until then the adapter validates and, in debug mode, reports
- * sanitized events locally, and sends nothing anywhere.
+ * `enabled` is true and GA4 is live. `deliver()` still requires `window.gtag` to be a
+ * function, which `ga4-bootstrap.js` supplies; without that file this adapter validates
+ * everything and sends nothing, which is the state it shipped in through Phase 16.
  */
 
 /**
- * Launch configuration. The identifiers are the ones ../../ANALYTICS.md records for the
- * existing games; they are kept here as configuration rather than scattered through the
- * application, and they stay inert while `enabled` is false.
+ * Launch configuration.
+ *
+ * **GA4 is active as of Phase 17**, ruled by Mert on 2026-09-15 and recorded in `D-011`:
+ * launch week happens once, and an unmeasured launch cannot be recovered afterwards. The
+ * destination is property `343135392` / `G-EP331KDLPN`. `games.userguiding.com` is already
+ * in that property and `/generative-ui-checkup/` is a distinct path, so isolating this
+ * check-up's data needed no configuration.
+ *
+ * `ga4MeasurementId` is now the single source of truth for the identifier: `ga4-bootstrap.js`
+ * reads it to build the tag URL, so there is no second copy in index.html to fall out of step.
+ *
+ * **`linkedInPartnerId` stays empty, and that is deliberate rather than pending.** The
+ * LinkedIn pixel is out of scope for this phase; `snap.licdn.com` is absent from the CSP for
+ * the same reason. The empty value is what keeps `stage()` inert now that `enabled` is true —
+ * see the two guards at the bottom of this file, which this phase makes load-bearing for the
+ * first time. D-004 removed the identifier; nothing here restores it.
  */
 export const ANALYTICS_CONFIG = {
   ga4MeasurementId: 'G-EP331KDLPN',
-  linkedInPartnerId: '2295498',
-  enabled: false,
+  linkedInPartnerId: '',
+  enabled: true,
   debug: false
 };
 
@@ -67,6 +86,82 @@ export const STAGES = Object.freeze({
   cta: 'guccta'
 });
 
+/* ------------------------------------------------- free-text transport bound */
+
+/**
+ * GA4 documents its parameter-value cap as "100 characters" and does not name the unit. A
+ * value over that cap is truncated silently, which is exactly the WOE2 defect: `utm_campaign`
+ * was sheared off a `link_url` and the data looked complete while it was not.
+ *
+ * The product's 80-character task limit is not this bound and never was. Three different
+ * units were being compared as one:
+ *
+ *   - `taskLength()` counts visible Unicode code points, excluding variation selectors.
+ *     That is the right unit for the on-screen counter and the O-002 ruling, and the wrong
+ *     one for a wire budget.
+ *   - `maxlength="200"` counts UTF-16 code units.
+ *   - GA4 counts something it declines to specify.
+ *
+ * Measured: a task that passes `isValidTask` reaches 200 UTF-16 units and 440 UTF-8 bytes.
+ * Eighty astral emoji are 80 by `taskLength`, 160 units and 320 bytes. Eighty ordinary
+ * Turkish characters are already 160 bytes.
+ *
+ * So the transport carries its own bound, enforced here where the event is built rather
+ * than at the input where a different question is being answered. Raising or lowering the
+ * input limit would not fix this and is not the remedy: the 80 is a product decision about
+ * what a good task looks like, and this is a transport constraint that happens to collide
+ * with it. Both plausible units are bounded, because picking one is a bet on undocumented
+ * behaviour and bounding both is not.
+ *
+ * The prefix is taken on code-point boundaries. `slice(0, 100)` on an emoji string cuts a
+ * surrogate pair in half and leaves a lone surrogate, which is not valid UTF-8; that mangles
+ * a value rather than shortening it.
+ */
+export const TASK_TEXT_MAX_UTF16 = 100;
+export const TASK_TEXT_MAX_BYTES = 100;
+
+/** The two ways a task can arrive. Compared against the presets, so it needs no state. */
+export const TASK_SOURCES = Object.freeze(['preset', 'custom']);
+
+/** UTF-8 cost of a single code point, without allocating an encoder per character. */
+function utf8Cost(codePoint) {
+  if (codePoint < 0x80) return 1;
+  if (codePoint < 0x800) return 2;
+  if (codePoint < 0x10000) return 3;
+  return 4;
+}
+
+/**
+ * The longest code-point-boundary prefix of `value` that is within both bounds.
+ *
+ * Returns the truncation outcome rather than just the text, so the caller can report it.
+ * A silent truncation is the defect; a declared one is data.
+ *
+ * @param {string} value
+ * @returns {{text: string, truncated: boolean}}
+ */
+export function boundTaskText(value) {
+  if (typeof value !== 'string') return { text: '', truncated: false };
+
+  let units = 0;
+  let bytes = 0;
+  let end = 0;
+
+  // for..of over a string iterates code points, so `end` never lands inside a pair.
+  for (const character of value) {
+    const nextUnits = units + character.length;
+    const nextBytes = bytes + utf8Cost(character.codePointAt(0));
+    if (nextUnits > TASK_TEXT_MAX_UTF16 || nextBytes > TASK_TEXT_MAX_BYTES) {
+      return { text: value.slice(0, end), truncated: true };
+    }
+    units = nextUnits;
+    bytes = nextBytes;
+    end += character.length;
+  }
+
+  return { text: value, truncated: false };
+}
+
 /* --------------------------------------------------------------- value checks */
 
 const oneOf = (values) => (value) => values.includes(value);
@@ -76,6 +171,15 @@ const isArchetype = oneOf(ARCHETYPES);
 const isBand = oneOf(BANDS);
 
 /**
+ * The one free-text parameter in the product.
+ *
+ * This only decides whether the value is the right *kind* of thing; the length question is
+ * settled by `boundTaskText` in `sanitize`, after validation, because a long task should be
+ * shortened and flagged rather than dropped entirely.
+ */
+const isTaskText = (value) => typeof value === 'string' && value.length > 0;
+
+/**
  * Allowlisted events and their exact parameter schemas.
  *
  * `utm` marks the one event that may additionally carry allowlisted campaign parameters.
@@ -83,9 +187,20 @@ const isBand = oneOf(BANDS);
  */
 const SCHEMA = Object.freeze({
   game_start: { params: { game: oneOf([GAME]) }, utm: true },
-  guc_start: { params: { variant: oneOf(['tr']) } },
+  guc_start: {
+    params: {
+      variant: oneOf(['tr']),
+      task_source: oneOf(TASK_SOURCES),
+      task_text: isTaskText
+    },
+    // Names the free-text parameter so `sanitize` bounds it for transport and reports the
+    // outcome. Declared here rather than done by the caller: the adapter's guarantee is that
+    // nothing reaches a payload without passing through this file.
+    freeText: 'task_text'
+  },
   guc_question_view: { params: { question_id: oneOf(QUESTION_IDS), position: intBetween(1, 8) } },
-  guc_answer: { params: { question_id: oneOf(QUESTION_IDS) } },
+  // The option index is the answer value, so the range is the four options of every question.
+  guc_answer: { params: { question_id: oneOf(QUESTION_IDS), answer_value: intBetween(0, 3) } },
   game_complete: {
     params: {
       game: oneOf([GAME]),
@@ -165,6 +280,15 @@ export function sanitize(eventName, parameters = {}) {
     if (!Object.prototype.hasOwnProperty.call(source, key)) continue;
     const value = source[key];
     if (accept(value)) clean[key] = value;
+  }
+
+  if (schema.freeText && typeof clean[schema.freeText] === 'string') {
+    const { text, truncated } = boundTaskText(clean[schema.freeText]);
+    clean[schema.freeText] = text;
+    // Emitted with the text every time, not only when the bound bit. In BigQuery an absent
+    // parameter cannot be told apart from a false one, and the point of the flag is that a
+    // shortened value is never read as a complete one.
+    clean.task_truncated = truncated;
   }
 
   if (schema.utm) {
@@ -309,6 +433,10 @@ export function normalizeStageUrl() {
 
 export function stage(stageName) {
   try {
+    // The partner ID is empty since the identifiers were removed (D-004), and that alone is
+    // what keeps the LinkedIn stage inert. The `enabled` guard below is no longer the reason:
+    // Phase 17 set `enabled` to true, so the second guard is now the only one doing the work —
+    // which is exactly the case D-004 said it had to cover, and now does.
     if (!ANALYTICS_CONFIG.enabled) return null;
     if (!ANALYTICS_CONFIG.linkedInPartnerId) return null;
     if (typeof window === 'undefined' || !window.history || !window.history.replaceState) return null;

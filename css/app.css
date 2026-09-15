@@ -1011,3 +1011,141 @@ summary:focus-visible,
 }
 
 .block__body--scope { margin-bottom: 10px; font-weight: 700; }
+
+/* ------------------------------------------------ composer hand-off window */
+
+/*
+ * The window opened between the Check-up and the LinkedIn composer (O-014), rebuilt in
+ * Phase 12 around the card.
+ *
+ * These rules live in this stylesheet, rather than beside the code that builds that window,
+ * because the window inherits this page's `style-src 'self'`: inline style attributes and
+ * inline <style> elements are both dropped, silently, leaving an unstyled window rather than
+ * an error. An external sheet is the only styling that survives, and a second CSS file would
+ * widen the ten-file runtime allowlist for one surface.
+ *
+ * Everything below reuses the locked system's tokens, the `.partners` boxes and the
+ * `.colophon` footer. No new visual treatment is introduced: `design/` is Codex-owned and
+ * read-only. The one thing the system has no existing pattern for is a two-column split at
+ * this size, so it is expressed with the same grid primitive `.partners__grid` already uses
+ * and the same 760px stacking breakpoint, rather than inventing a new responsive rule.
+ */
+
+.handoff-body {
+  margin: 0;
+  padding: 0 20px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.handoff {
+  box-sizing: border-box;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 28px 0 8px;
+}
+
+.handoff__heading {
+  margin: 0 0 20px;
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+/* The card takes the larger share: the user has to right-click it. */
+.handoff__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.handoff__figure {
+  margin: 0;
+}
+
+.handoff__card {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  box-shadow: 5px 5px 0 var(--blue-wash);
+}
+
+.handoff__aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.handoff__instruction {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.5;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.handoff__note {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.handoff__action {
+  display: inline-block;
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: var(--white);
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.handoff__action:hover { background: var(--blue-deep); }
+
+/* The download control D-010 added. Secondary to the way out, which is why it is outlined
+   rather than filled: it is an equal way to take the card, not an equal-weight next step. */
+.handoff__download {
+  display: inline-block;
+  padding: 10px 20px;
+  border: 2px solid var(--blue);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--blue);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.handoff__download:hover {
+  background: var(--blue);
+  color: var(--white);
+}
+
+/* Both controls carry the same focus treatment. A keyboard user is the reason the download
+   control exists (O-019), so an invisible focus ring on it would defeat the repair. */
+.handoff__action:focus-visible,
+.handoff__download:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.handoff__colophon {
+  box-sizing: border-box;
+  max-width: 900px;
+  margin: 0 auto;
+  padding-inline: 0;
+}
+
+/*
+ * One column on a phone. 760px is the breakpoint `.partners__grid` already stacks at, so the
+ * two-column split and the partner boxes collapse together rather than at different widths.
+ */
+@media (max-width: 760px) {
+  .handoff__columns { grid-template-columns: 1fr; gap: 20px; }
+  .handoff__card { max-width: 360px; }
+}

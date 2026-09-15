@@ -1,5 +1,5 @@
 /**
- * Generative UI Check-up: 1080 x 1350 result card, clipboard and sharing.
+ * Generative UI Check-up: 1080 x 1350 result card, and the sharing built on it.
  *
  * The card is drawn with native Canvas from the same frozen result object the result
  * screen renders, and from the same content maps in ./questions.js. No display string is
@@ -14,8 +14,10 @@
  * read back through getBoundingClientRect. Codex owns the art direction; this file only
  * reproduces it.
  *
- * Nothing here contacts the network. Sharing uses a campaign URL with only the coarse
- * archetype id; answers, profile scores and identity are never serialised into it.
+ * Nothing here contacts the network. Sharing uses one fixed URL carrying a single authored
+ * key, `utm_source=generative_ui_checkup`. It does not vary by archetype, channel or result:
+ * no archetype, answer, profile score, band or identity is ever serialised into it. See
+ * `SHARE_URL` and `trackedShareUrl()` below, which take no argument for exactly that reason.
  */
 
 import {
@@ -37,9 +39,10 @@ export const CANONICAL_URL = 'https://games.userguiding.com/generative-ui-checku
  * LinkedIn composer. The post draft itself carries the tracked Check-up URL.
  *
  * The `text` query parameter is undocumented composer behaviour, not a supported LinkedIn
- * API. It works today and may stop working without notice, so every caller must remain
- * useful if LinkedIn ignores it: the draft stays in the editable textarea, the card stays
- * on the clipboard, and the user can paste both by hand.
+ * API. It works today and may stop working without notice, and nothing here can observe
+ * which, so every caller must remain useful if LinkedIn ignores it: the draft stays in the
+ * editable textarea on the Check-up tab, and the card stays on screen in the hand-off window.
+ * Both are still in front of the user, and neither depends on the parameter having worked.
  */
 export const LINKEDIN_COMPOSER_URL = 'https://www.linkedin.com/feed/?shareActive=true';
 
@@ -619,6 +622,16 @@ export function renderCard(result) {
   return canvas;
 }
 
+/** Resolve a drawn canvas to a PNG blob. */
+export function canvasToBlob(canvas) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error('canvas produced no blob'));
+    }, 'image/png');
+  });
+}
+
 /** Render the card and resolve to a PNG blob. */
 export function renderCardBlob(result) {
   return new Promise((resolve, reject) => {
@@ -629,11 +642,34 @@ export function renderCardBlob(result) {
       reject(error);
       return;
     }
-    canvas.toBlob((blob) => {
-      if (blob) resolve(blob);
-      else reject(new Error('canvas produced no blob'));
-    }, 'image/png');
+    canvasToBlob(canvas).then(resolve, reject);
   });
+}
+
+/**
+ * The hand-off window shows the card at its natural size, not a thumbnail.
+ *
+ * Phase 12 made the image the mechanism: the user copies it with the browser's own right-click
+ * menu. "Copy Image" copies the source bitmap, not what CSS displays, so a scaled-down source
+ * would silently hand the user a small card to post. The image is therefore emitted at the
+ * full `1080 x 1350` and sized down for display in CSS only.
+ */
+export const CARD_IMAGE_NATURAL_WIDTH = CARD.w;
+
+/**
+ * The card as a `data:` URL, at full resolution.
+ *
+ * It must be a `data:` URL rather than a `blob:` one. The hand-off window is an `about:blank`
+ * popup, which inherits this document's `img-src 'self' data:` policy; a `blob:` source is
+ * refused, and refused silently, so the image simply never appears. Measured, not assumed.
+ *
+ * Takes an already-drawn canvas, so showing the card costs no second render.
+ *
+ * @param {HTMLCanvasElement} canvas a card drawn by renderCard()
+ * @returns {string} a `data:image/png;base64,...` URL of the full 1080 x 1350 card
+ */
+export function cardImageUrl(canvas) {
+  return canvas.toDataURL('image/png');
 }
 
 /* -------------------------------------------------------------------- share */
@@ -677,27 +713,6 @@ export function prefersNativeShare(win = globalThis) {
   return Boolean(coarse && coarse.matches && hoverless && hoverless.matches);
 }
 
-/**
- * Put the card PNG on the clipboard.
- *
- * Must be called inside the user gesture that requested the share. Throws a typed
- * ShareSheetError on every failure path, including a browser with no `ClipboardItem`, so
- * the caller can report the truth instead of guessing.
- */
-export async function copyImage(blob, win = globalThis) {
-  const nav = win && win.navigator;
-  const Item = win && win.ClipboardItem;
-  if (!blob) throw new ShareSheetError('no card');
-  if (!nav || !nav.clipboard || typeof nav.clipboard.write !== 'function') {
-    throw new ShareSheetError('clipboard unavailable');
-  }
-  if (typeof Item !== 'function') throw new ShareSheetError('ClipboardItem unavailable');
-  try {
-    await nav.clipboard.write([new Item({ [blob.type || 'image/png']: blob })]);
-  } catch (error) {
-    throw new ShareSheetError(error);
-  }
-}
 
 /**
  * Share the card through the native sheet.
