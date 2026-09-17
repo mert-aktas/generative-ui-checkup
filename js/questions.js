@@ -392,14 +392,26 @@ export const UI_COPY = deepFreeze({
   cardPreparing: "Karne hazırlanıyor…",
   shareLinkedIn: "LinkedIn'de paylaş",
   shareNative: "Paylaşım ekranını aç",
-  shareNoteDesktop: "Devam ettiğinizde yeni bir sekmede sonuç karneniz açılır. Karneyi oradan kopyalayıp LinkedIn'e geçeceksiniz.",
+  // Both surfaces that carry an editable draft read these two. They are keys rather than
+  // inline literals in each surface for the reason Phase 13 established: a string authored in
+  // COPY-TR.md and duplicated as a literal sits outside the parity test and drifts unnoticed.
+  // The hand-off window is built from JS, so a literal there would be exactly that shape again.
+  draftIntro: "Aşağıdaki metni dilediğiniz gibi düzenleyin. Paylaşırken kutudaki güncel metin kullanılır.",
+  draftLabel: "LinkedIn post metni",
+  // Read only on the fallback surface now. The desktop happy path no longer passes through
+  // this dialog, so a note describing what happens next on that path would be read by nobody.
+  shareNoteDesktop: "Bu pencere, yeni sekmeye geçilemediğinde kullanılır. Post metniniz yukarıdaki kutuda duruyor.",
   shareNoteNative: "Metin ve sonuç karnesi paylaşım ekranına birlikte aktarılır. LinkedIn'i seçtikten sonra postu düzenleyebilir veya olduğu gibi yayımlayabilirsiniz.",
   shareOpened: "Yeni sekme açıldı. Oradaki adımları izleyin.",
   handoffHeading: "Karneyi gönderinize ekleyin",
   handoffInstruction: "Karneye sağ tıklayın, \u201CResmi kopyala\u201D deyin, sonra LinkedIn gönderinize yapıştırın.",
   handoffDownloadNote: "Karneyi indirip gönderinize de ekleyebilirsiniz.",
   handoffDownloadAction: "Karneyi indir",
-  handoffDraftNote: "Post metniniz önceki sekmedeki kutuda duruyor.",
+  // The two states the window can be in before, or instead of, showing a card. Neither names
+  // another tab: closing that split is what this phase is for. Neither is rendered beside an
+  // instruction to act on a card, because in both of them there is no card to act on.
+  handoffPreparing: "Sonuç karneniz hazırlanıyor. Post metninizi şimdiden düzenleyebilirsiniz.",
+  handoffFailed: "Sonuç karneniz hazırlanamadı. Post metninizi buradan yine de paylaşabilirsiniz.",
   handoffAction: "LinkedIn'e git",
   handoffCardAlt: "Sonuç karneniz",
   colophon: "Soft Commitment x UserGuiding iş birliğiyle hazırlandı.",

@@ -1094,6 +1094,57 @@ summary:focus-visible,
   color: var(--ink-soft);
 }
 
+/* The preparing and failed states. Hidden in `ready`, where the instruction is what to read. */
+.handoff__status {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.handoff__status[data-state="failed"] { color: var(--coral); }
+
+/* The card, its instruction and the download control, present or absent as one unit. Entry 026
+   shipped a conditional image beside an unconditional instruction; grouping them is what makes
+   that pairing unrepresentable rather than merely avoided. */
+.handoff__card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.handoff__card-actions:empty { display: none; }
+
+/* The draft this phase moved in from the dialog on the other tab. Full width of the aside, and
+   tall enough to read the whole post without scrolling it. */
+.handoff__label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.handoff__draft {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 200px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.handoff__draft:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
 .handoff__action {
   display: inline-block;
   padding: 12px 22px;

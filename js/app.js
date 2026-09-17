@@ -92,6 +92,23 @@ const share = {
    * gesture, so there is no room to convert one to the other at that point.
    */
   cardImage: null,
+  /**
+   * Where the card has got to: `preparing`, `ready` or `failed`.
+   *
+   * Tracked explicitly rather than inferred from `cardImage` being null, because since Phase 18
+   * the two are no longer the same question. `cardImage === null` is true both while the render
+   * is still running and after it failed, and the desktop share control has to tell those apart
+   * at the moment it is clicked: the first opens a window that fills itself in, the second opens
+   * no window at all.
+   */
+  cardState: 'preparing',
+  /**
+   * The hand-off window this run opened, while it is still ours to write to.
+   *
+   * Set to null the moment it stops being — closed by the user, or navigated to LinkedIn, which
+   * makes its document cross-origin and every property access on it a throw on our own tab.
+   */
+  handoffWindow: null,
   /** Guards against two overlapping preparations for different results. */
   token: 0
 };
@@ -137,6 +154,8 @@ const dom = {
   shareOpen: byId('share-open'),
   shareDialog: byId('share-dialog'),
   shareDialogHeading: byId('share-dialog-heading'),
+  shareIntro: byId('share-intro'),
+  shareDraftLabel: byId('share-draft-label'),
   shareDraft: byId('share-draft'),
   shareNote: byId('share-note'),
   shareDialogStatus: byId('share-dialog-status'),
@@ -557,8 +576,26 @@ function resetShare() {
   dom.shareOpen.disabled = false;
   setDialogStatus('');
   share.blob = null;
+  share.cardImage = null;
+  share.cardState = 'preparing';
+  share.handoffWindow = null;
   share.token += 1;
   dom.shareOpenLinkedIn.hidden = true;
+  dom.shareOpenLinkedIn.textContent = UI_COPY.popupBlockedAction;
+  dom.shareConfirm.hidden = false;
+  dom.shareDraft.value = buildLinkedInDraft(state.result, state.task);
+  applyShareNote();
+  setShareAction('preparing');
+
+  // **The render starts here, at the result screen, rather than when the share control is
+  // clicked.** This is not a wait on the opener's side and it does not change what the click
+  // does: the click still opens the window in the same tick, whatever state the card is in. It
+  // moves when the work begins, so that by the time a user has read their result and reached for
+  // the share control, the window usually opens straight into `ready`.
+  //
+  // The `preparing` state stays fully implemented and tested because it is reachable — a slow
+  // machine, a fast click — not because it is common.
+  prepareCard();
 }
 
 function shareBusy(busy) {
@@ -623,16 +660,23 @@ function currentDraft() {
  *
  * @returns {Window|null} the opened window, or null if it could not be opened or written to
  */
-function openComposerPopup(composerUrl) {
+function openComposerPopup(seedDraft) {
   // Wide enough for the two-column layout the window now carries. At the previous 600px it
   // opened below the 760px stacking breakpoint, so the card and the instruction sat on top of
   // each other on a desktop and the card rendered at half the width the user has to right-click.
+  //
+  // **This call is synchronous inside the user's gesture, and nothing may be awaited before it.**
+  // A browser that does not see an unbroken line from the click to the `window.open` treats the
+  // window as unsolicited and blocks it, and a blocked popup is indistinguishable to the user
+  // from a broken button. Since Phase 18 the card may still be rendering at this point; that is
+  // what the window's `preparing` state is for. Waiting for the card here would trade a state
+  // the user can read for a failure they cannot.
   const popup = window.open('', '_blank', 'width=1040,height=860');
   if (!popup) return null;
   try {
     // Before anything else, and before any content exists to interact with it.
     popup.opener = null;
-    if (!renderHandoffWindow(popup, composerUrl)) {
+    if (!renderHandoffWindow(popup, seedDraft)) {
       // No document we can write to, so the instruction cannot be put in front of the user.
       //
       // Phase 9 navigated straight to the composer here, reasoning that losing the instruction
@@ -662,23 +706,47 @@ function closeQuietly(popup) {
 /** Identifies the instruction line inside the hand-off window. */
 const HANDOFF_INSTRUCTION_ID = 'handoff-instruction';
 
-// The aside holds two `handoff__note` paragraphs, so the class alone no longer identifies
-// either of them. Each gets an id for the same reason the instruction above has one: a test
-// that selects a note by position asserts against whichever paragraph is currently second,
-// and a later reorder would silently change the subject of the assertion without failing.
+// Every element the opener or a test needs to find again gets an id. The aside holds several
+// paragraphs with the same class, so the class alone identifies none of them: a selector that
+// picks a note by position asserts against whichever paragraph is currently in that slot, and a
+// later reorder changes the subject of the assertion without failing it. That is not
+// hypothetical here — `D-010` added a second `handoff__note` and broke exactly such a selector.
 /** Identifies the note beside the download control. */
 const HANDOFF_DOWNLOAD_NOTE_ID = 'handoff-download-note';
-/** Identifies the note pointing back at the draft in the previous tab. */
-const HANDOFF_DRAFT_NOTE_ID = 'handoff-draft-note';
+/** Marks the window as one this application authored, and still owns. */
+const HANDOFF_ROOT_ID = 'handoff-root';
+/** The line that says which of the three states the window is in. */
+const HANDOFF_STATUS_ID = 'handoff-status';
+/** Everything that only makes sense once a card exists: instruction, note, download control. */
+const HANDOFF_CARD_ACTIONS_ID = 'handoff-card-actions';
+/** The card image itself. */
+const HANDOFF_CARD_ID = 'handoff-card';
+/** The editable draft, which this phase moved into the window. */
+const HANDOFF_DRAFT_ID = 'handoff-draft';
+/** The promise that the box's current text is what gets shared, beside the box it is about. */
+const HANDOFF_DRAFT_INTRO_ID = 'handoff-draft-intro';
+/** The link to the composer, whose href is rebuilt from the draft at click time. */
+const HANDOFF_ACTION_ID = 'handoff-action';
 
 /**
- * Put the paste instruction in the window the user is about to look at.
+ * Build the whole hand-off surface: the card, the instruction, the draft and the way out.
+ *
+ * **Since Phase 18 this window is the entire desktop share flow, not the second half of one.**
+ * It used to be opened from a dialog that held the editable draft, and it had to tell the user
+ * so — a window that has to say where the rest of the task is has been split in the wrong place.
+ * The draft is authored here now, beside the card, and the sentence about the other tab is gone
+ * with the split rather than reworded to survive it.
  *
  * O-014: the instruction used to be written to the Check-up tab at the moment the browser
  * moved focus to a new tab, so it was rendered somewhere the user had already left. Mert
  * missed it entirely on a real desktop run. This is a timing problem, not a wording problem,
  * and the only surface we can still reach after the move is this window: LinkedIn itself is
  * cross-origin and unreachable by design.
+ *
+ * What goes in the card half is `applyHandoffState()`'s decision, not this function's. The
+ * window opens inside the user's gesture and the card may still be rendering, so this builds the
+ * frame and that fills it — once now, and again from `updateHandoffWindow()` if the card lands
+ * after the user is already looking at the window.
  *
  * The window advances on an explicit click, never on a timer. An instruction that removes
  * itself after a few seconds is the same defect in a smaller form.
@@ -706,14 +774,7 @@ const HANDOFF_DRAFT_NOTE_ID = 'handoff-draft-note';
  *
  * @returns {boolean} whether the window could be written to
  */
-function renderHandoffWindow(popup, composerUrl) {
-  // No card, no window. Every word in here is about the card — the instruction tells the user to
-  // right-click it — so rendering without one puts that instruction in front of an empty box.
-  // Phase 12 made the image conditional and left the instruction unconditional, which is the
-  // shape entry `026` failed. Making the card a precondition removes the state rather than
-  // guarding it in two places.
-  if (!share.cardImage) return false;
-
+function renderHandoffWindow(popup, seedDraft) {
   const doc = popup.document;
   if (!doc || typeof doc.createElement !== 'function' || !doc.body) return false;
 
@@ -727,95 +788,105 @@ function renderHandoffWindow(popup, composerUrl) {
 
   const main = doc.createElement('main');
   main.className = 'handoff';
+  // The marker that says this document is ours. `updateHandoffWindow()` checks for it before
+  // writing anything, so a window the user has navigated elsewhere is never written into.
+  main.id = HANDOFF_ROOT_ID;
 
   const heading = doc.createElement('h1');
   heading.className = 'handoff__heading';
   heading.textContent = UI_COPY.handoffHeading;
   main.appendChild(heading);
 
-  // Two columns: the card on the left, the words and the way out on the right. The card is
-  // the mechanism now, not an illustration, so it gets the larger half.
+  // Two columns: the card on the left, the words, the draft and the way out on the right. The
+  // card is the mechanism, not an illustration, so it gets the larger half.
   const columns = doc.createElement('div');
   columns.className = 'handoff__columns';
 
+  // Left empty here and filled by `applyHandoffState()`. The window opens inside the user's
+  // gesture and the card may not exist yet, so what goes in this figure is a question only that
+  // function can answer, and it has to be able to answer it again later.
   const figure = doc.createElement('figure');
   figure.className = 'handoff__figure';
-  const card = doc.createElement('img');
-  card.className = 'handoff__card';
-  // Full resolution, displayed smaller by CSS. "Copy Image" copies the source bitmap, so a
-  // scaled-down source would hand the user a small card to post without telling them.
-  card.src = share.cardImage;
-  card.alt = UI_COPY.handoffCardAlt;
-  figure.appendChild(card);
   columns.appendChild(figure);
 
   const aside = doc.createElement('div');
   aside.className = 'handoff__aside';
 
-  const instruction = doc.createElement('p');
-  instruction.className = 'handoff__instruction';
-  instruction.id = HANDOFF_INSTRUCTION_ID;
-  instruction.textContent = UI_COPY.handoffInstruction;
-  aside.appendChild(instruction);
+  // Says which of the three states the window is in. Empty and hidden once there is a card,
+  // because at that point the instruction below it is the thing to read.
+  const status = doc.createElement('p');
+  status.className = 'handoff__status';
+  status.id = HANDOFF_STATUS_ID;
+  aside.appendChild(status);
 
-  // The second way to take the card, added by `D-010` to rule `O-019`.
-  //
-  // Right-click was the only path Phase 12 left, and entry `026` raised the consequence as a P1:
-  // the image is not focusable, no control offered the same outcome, and a keyboard has no
-  // dependable way into the context menu — Mac keyboards have no context-menu key and Shift+F10
-  // does not reliably target a focused image. A user on the keyboard could reach the draft, the
-  // window and the way out, and could not take the one thing the window exists to hand over.
-  //
-  // An anchor with `href` and `download` is in the tab order and answers to Enter because it is a
-  // link, not because anything here made it one. That is the reason to prefer it over a button
-  // plus a synthesized click: no `tabindex`, no key handler, no focus management to get wrong.
-  //
-  // `share.cardImage` is the same data URL the `img` above renders, so the file the user saves is
-  // the full-resolution bitmap rather than the displayed size. The comment on that `img` makes
-  // the same point about the browser's own copy command, and it holds identically here.
-  //
-  // No double-quoted prose in this block, deliberately: the undocumented-copy guard pairs quote
-  // characters across the whole file, so an unbalanced pair here captures a span of comment and
-  // reports it as undeclared Turkish copy. Found by that guard, on this change.
-  //
-  // Nothing downloads until it is pressed. `PRODUCT-SPEC.md:260` prohibits an *automatic*
-  // download and is untouched by `D-010`; this control is the user's, and the prohibition it
-  // leaves in place is the one about acting without them.
-  const download = doc.createElement('a');
-  download.className = 'handoff__download';
-  download.href = share.cardImage;
-  download.download = CARD_FILENAME;
-  download.textContent = UI_COPY.handoffDownloadAction;
+  // Everything that only makes sense once a card exists, in one container so it can be present
+  // or absent as a unit. Entry `026` failed a window whose image was conditional and whose
+  // instruction to right-click it was not; keeping them in one subtree is what makes that
+  // mismatch unrepresentable rather than merely avoided in two places.
+  const cardActions = doc.createElement('div');
+  cardActions.className = 'handoff__card-actions';
+  cardActions.id = HANDOFF_CARD_ACTIONS_ID;
+  aside.appendChild(cardActions);
 
-  const downloadNote = doc.createElement('p');
-  downloadNote.className = 'handoff__note';
-  downloadNote.id = HANDOFF_DOWNLOAD_NOTE_ID;
-  // Says what the user may do, never that a file arrived or where it landed. The application
-  // cannot observe a download's outcome, exactly as it could not observe the clipboard write
-  // whose withdrawn success message is the reason that mechanism is gone. The withdrawn wording
-  // is deliberately not reproduced here: `:606` records why, and it applies to this line too.
-  downloadNote.textContent = UI_COPY.handoffDownloadNote;
-  aside.appendChild(downloadNote);
-  aside.appendChild(download);
+  // The draft, which Phase 18 moved here from the dialog on the other tab.
+  //
+  // It is built once, seeded by the caller, and never rewritten by the opener afterwards. That
+  // matters: the card can resolve while the user is part-way through editing, and the fill that
+  // follows must not take their sentence away. `applyHandoffState()` touches the figure and the
+  // card actions only, and nothing in this file writes to this textarea again.
+  const intro = doc.createElement('p');
+  intro.className = 'handoff__note';
+  intro.id = HANDOFF_DRAFT_INTRO_ID;
+  intro.textContent = UI_COPY.draftIntro;
+  aside.appendChild(intro);
 
-  const draftNote = doc.createElement('p');
-  draftNote.className = 'handoff__note';
-  draftNote.id = HANDOFF_DRAFT_NOTE_ID;
-  draftNote.textContent = UI_COPY.handoffDraftNote;
-  aside.appendChild(draftNote);
+  const label = doc.createElement('label');
+  label.className = 'handoff__label';
+  label.htmlFor = HANDOFF_DRAFT_ID;
+  label.textContent = UI_COPY.draftLabel;
+  aside.appendChild(label);
+
+  const draft = doc.createElement('textarea');
+  draft.className = 'handoff__draft';
+  draft.id = HANDOFF_DRAFT_ID;
+  draft.rows = 10;
+  draft.value = seedDraft;
+  aside.appendChild(draft);
 
   // Live from the moment it renders. Gate 9 made this control wait for a clipboard result;
   // there is no longer a clipboard result to wait for, so the reason to withhold it is gone
   // with the mechanism (`AUDIT-LEDGER.md` entry `019`, Track B blocker 2).
   const action = doc.createElement('a');
   action.className = 'handoff__action';
-  action.href = composerUrl;
+  action.id = HANDOFF_ACTION_ID;
   action.rel = 'noopener';
   action.textContent = UI_COPY.handoffAction;
+
+  // `UI_COPY.draftIntro`, rendered directly above this box, promises that the current text in
+  // the box is what gets shared. That promise is older than this phase and has to survive the
+  // move, so the href is rebuilt from the textarea rather than captured from the value the
+  // window opened with. The sentence itself lives in `COPY-TR.md` and is not repeated here:
+  // a Turkish string in two places is the drift this project keeps paying for.
+  //
+  // Both listeners read the same box; neither holds a copy of it. The `click` one is what makes
+  // the promise literally true, because it runs before the browser follows the link and so the
+  // URL navigated to is built from the box as it stands at that instant. The `input` one keeps
+  // the href honest in between, for the user who copies the link address or opens it in a new
+  // tab from the context menu rather than clicking it.
+  //
+  // A draft read once, when the window opened, would break this silently and in the worst
+  // possible way: the user's edit stays visible on screen while a stale value is what travels.
+  const syncComposerHref = () => { action.href = linkedInComposerUrl(draft.value); };
+  syncComposerHref();
+  draft.addEventListener('input', syncComposerHref);
+  action.addEventListener('click', syncComposerHref);
+
   aside.appendChild(action);
 
   columns.appendChild(aside);
   main.appendChild(columns);
+
+  if (!applyHandoffState(doc, share.cardState, main)) return false;
 
   // The same attribution the result screen carries, using the same classes. Nothing new is
   // invented here: `design/` is Codex-owned and read-only.
@@ -831,6 +902,148 @@ function renderHandoffWindow(popup, composerUrl) {
   doc.body.appendChild(main);
   doc.body.appendChild(colophon);
   return true;
+}
+
+/**
+ * Draw the state that is true, rather than refusing to draw.
+ *
+ * Until Phase 18 this window had one state and a precondition: no `share.cardImage`, no window.
+ * That was the right call while the modal held the user long enough for `prepareCard()` to
+ * finish, because the precondition was then unreachable in practice. Phase 18 removes the modal
+ * from the desktop path and with it that buffer, so the window can now legitimately open before
+ * the card exists — and a precondition that refuses to draw would turn an ordinary wait into a
+ * blocked-popup report.
+ *
+ * The three states are `preparing`, `ready` and `failed`. **The card, the download control and
+ * the instruction to right-click appear only in `ready`, and they appear together.** Entry `026`
+ * failed a shipped window whose image was conditional and whose instruction was not; rendering
+ * before the card exists reopens that door, so they are built as one subtree that is present or
+ * absent as a whole.
+ *
+ * The draft, its label and its intro are deliberately not touched here. The card can resolve
+ * while the user is mid-sentence, and a fill that rewrote the textarea would take their words
+ * away at the one moment they are least expecting it.
+ *
+ * @param {Document} doc the hand-off window's document
+ * @param {'preparing'|'ready'|'failed'} cardState
+ * @param {Element} [root] subtree to search, for the first render when nothing is attached yet
+ * @returns {boolean} whether the window still had the structure this writes into
+ */
+function applyHandoffState(doc, cardState, root) {
+  const scope = root || doc;
+  const status = scope.querySelector(`#${HANDOFF_STATUS_ID}`);
+  const actions = scope.querySelector(`#${HANDOFF_CARD_ACTIONS_ID}`);
+  const figure = scope.querySelector('.handoff__figure');
+  if (!status || !actions || !figure) return false;
+
+  // Whatever the previous state left behind goes first, so no element from it can survive into a
+  // state that does not include it.
+  figure.replaceChildren();
+  actions.replaceChildren();
+  status.dataset.state = cardState;
+
+  if (cardState !== 'ready') {
+    status.hidden = false;
+    status.textContent = cardState === 'failed' ? UI_COPY.handoffFailed : UI_COPY.handoffPreparing;
+    return true;
+  }
+
+  status.hidden = true;
+  status.textContent = '';
+
+  const card = doc.createElement('img');
+  card.className = 'handoff__card';
+  card.id = HANDOFF_CARD_ID;
+  // Full resolution, displayed smaller by CSS. The browser's own copy command copies the source
+  // bitmap, so a scaled-down source would hand the user a small card to post without telling them.
+  card.src = share.cardImage;
+  card.alt = UI_COPY.handoffCardAlt;
+  figure.appendChild(card);
+
+  const instruction = doc.createElement('p');
+  instruction.className = 'handoff__instruction';
+  instruction.id = HANDOFF_INSTRUCTION_ID;
+  instruction.textContent = UI_COPY.handoffInstruction;
+  actions.appendChild(instruction);
+
+  const downloadNote = doc.createElement('p');
+  downloadNote.className = 'handoff__note';
+  downloadNote.id = HANDOFF_DOWNLOAD_NOTE_ID;
+  // Says what the user may do, never that a file arrived or where it landed. The application
+  // cannot observe a download's outcome, exactly as it could not observe the clipboard write
+  // whose withdrawn success message is the reason that mechanism is gone. The withdrawn wording
+  // is deliberately not reproduced here: `:606` records why, and it applies to this line too.
+  downloadNote.textContent = UI_COPY.handoffDownloadNote;
+  actions.appendChild(downloadNote);
+
+  // The second way to take the card, added by `D-010` to rule `O-019`.
+  //
+  // Right-click was the only path Phase 12 left, and entry `026` raised the consequence as a P1:
+  // the image is not focusable, no control offered the same outcome, and a keyboard has no
+  // dependable way into the context menu — Mac keyboards have no context-menu key and Shift+F10
+  // does not reliably target a focused image. A user on the keyboard could reach the draft, the
+  // window and the way out, and could not take the one thing the window exists to hand over.
+  //
+  // An anchor with `href` and `download` is in the tab order and answers to Enter because it is a
+  // link, not because anything here made it one. That is the reason to prefer it over a button
+  // plus a synthesized click: no `tabindex`, no key handler, no focus management to get wrong.
+  //
+  // It stays the first focusable thing in the window, which is why the card actions sit above
+  // the draft: the user who needs this control is the user who cannot use the mechanism beside it.
+  //
+  // No double-quoted prose in this block, deliberately: the undocumented-copy guard pairs quote
+  // characters across the whole file, so an unbalanced pair here captures a span of comment and
+  // reports it as undeclared Turkish copy. Found by that guard, on an earlier change.
+  //
+  // Nothing downloads until it is pressed. `PRODUCT-SPEC.md:260` prohibits an *automatic*
+  // download and is untouched by `D-010`; this control is the user's, and the prohibition it
+  // leaves in place is the one about acting without them.
+  const download = doc.createElement('a');
+  download.className = 'handoff__download';
+  download.href = share.cardImage;
+  download.download = CARD_FILENAME;
+  download.textContent = UI_COPY.handoffDownloadAction;
+  actions.appendChild(download);
+
+  return true;
+}
+
+/**
+ * Fill in a window that is already open, when the card finally resolves.
+ *
+ * The opener holds a reference to a window the **user** controls, and by the time this runs they
+ * may have closed it or clicked through to LinkedIn. Both are ordinary, and both are fatal if
+ * assumed away: reading `document` on a window that has navigated cross-origin throws, and the
+ * throw lands on this tab, inside the card-preparation path, where it would look like a card
+ * failure rather than a user who simply moved on.
+ *
+ * Three checks, each for a different way the window stops being ours, and a catch for the one
+ * that cannot be checked without risking the throw it is checking for:
+ *
+ *   - `closed` — the user closed it.
+ *   - no `HANDOFF_ROOT_ID` — same-origin, but no longer the document we authored.
+ *   - the catch — cross-origin now, so even asking was a SecurityError.
+ *
+ * In every case the reference is dropped rather than retried. There is nothing to recover: the
+ * window that would have received the card no longer exists to receive it.
+ */
+function updateHandoffWindow() {
+  const popup = share.handoffWindow;
+  if (!popup) return;
+  try {
+    if (popup.closed) {
+      share.handoffWindow = null;
+      return;
+    }
+    const doc = popup.document;
+    if (!doc || !doc.getElementById(HANDOFF_ROOT_ID)) {
+      share.handoffWindow = null;
+      return;
+    }
+    applyHandoffState(doc, share.cardState);
+  } catch {
+    share.handoffWindow = null;
+  }
 }
 
 /**
@@ -937,6 +1150,12 @@ function setShareAction(state) {
  */
 async function prepareCard() {
   const token = share.token;
+  // The model says `preparing` alongside the control that says it. Until the Gate 18
+  // remediation only `setShareAction()` was called here, so a render started after a failure
+  // left `share.cardState` reading `failed` while it ran — a window opened during that retry
+  // would have shown the failed state for a card still on its way, and a second reopen would
+  // have started a third render on top of the second.
+  share.cardState = 'preparing';
   setShareAction('preparing');
   try {
     // One render feeds both outputs: the Blob the native share sheet passes as a file, and the
@@ -948,28 +1167,57 @@ async function prepareCard() {
     if (token !== share.token) return;
     share.blob = blob;
     share.cardImage = cardImageUrl(canvas);
+    share.cardState = 'ready';
     setShareAction('ready');
   } catch {
     if (token !== share.token) return;
     share.blob = null;
     share.cardImage = null;
+    share.cardState = 'failed';
     setShareAction('failed');
     setDialogStatus(UI_COPY.cardError, 'error');
     track('guc_error', { area: 'card' });
   }
+
+  // A window opened before this resolved is still sitting in `preparing`, and it is the surface
+  // the user is actually looking at. Both outcomes are delivered to it: `ready` puts the card in,
+  // `failed` says so honestly rather than leaving the window preparing for ever.
+  updateHandoffWindow();
 }
 
+/**
+ * Show the preparation dialog.
+ *
+ * **Since Phase 18 this is the mobile route's first step and the desktop route's fallback, and
+ * it is no longer where card preparation begins.** `resetShare()` starts the render when the
+ * result screen appears, so by the time anything opens this dialog the card is already on its
+ * way or already done. Re-preparing here would restart a render that is in flight, and on the
+ * desktop fallback it would do so at the exact moment the user needs the current state reported
+ * rather than replaced.
+ *
+ * The draft and the route note are set by `resetShare()` for the same reason: the dialog is now
+ * one of two surfaces that can carry them, so neither surface owns them. **The draft is
+ * deliberately not rebuilt here.** Whatever the user has typed is their post, and an open that
+ * discarded it would be a worse trade than the stale draft it prevents — `D-015`.
+ *
+ * **What an open does still own is a clean slate to report into, and a retry.** Opening the
+ * dialog is the native route's only recovery from a failed card; the alternative is `restart`,
+ * which discards eight answers. Phase 18 removed both along with the unconditional
+ * `prepareCard()` and no test went red, because no test reopened the dialog. `D-015`,
+ * `AUDIT-LEDGER.md` entry `033`.
+ *
+ * The two callers that open this dialog *to report a failure* — both in `openHandoffTab()` —
+ * set their status after this returns, for that reason.
+ */
 function openShareDialog() {
   if (!state.result) return;
-  share.token += 1;
-  share.blob = null;
-  share.cardImage = null;
-  dom.shareDraft.value = buildLinkedInDraft(state.result, state.task);
+
   setDialogStatus('');
-  dom.shareOpenLinkedIn.hidden = true;
-  dom.shareOpenLinkedIn.textContent = UI_COPY.popupBlockedAction;
-  applyShareNote();
-  setShareAction('preparing');
+
+  // Only a card that has already failed is retried. A `ready` card has nothing to re-render, and
+  // re-rendering it would flip a live share action back to `preparing` in front of a user who
+  // just opened the dialog to use it; a `preparing` card is already on its way.
+  if (share.cardState === 'failed') prepareCard();
 
   try {
     const canvas = renderCard(state.result);
@@ -981,53 +1229,65 @@ function openShareDialog() {
 
   dom.shareDialog.showModal();
   dom.shareDialogHeading.focus({ preventScroll: true });
-  prepareCard();
-}
-
-function closeShareDialog() {
-  if (dom.shareDialog.open) dom.shareDialog.close();
 }
 
 /**
- * The LinkedIn route, modelled on the two live Worst Onboarding games.
+ * The desktop share control, which now opens the hand-off window directly.
  *
- * Everything that needs the user gesture happens synchronously inside it: the popup is opened
- * blank so the browser still treats it as user-initiated, and the hand-off window is rendered
- * into it in the same tick. Nothing is awaited, because since Phase 12 there is no asynchronous
- * outcome left on this route to wait for.
+ * One gesture on the result screen, one window, carrying both the card and the editable draft.
+ * The dialog is not shown first: a window that had to tell the user their post text was in a box
+ * on the tab they just left was split in the wrong place, and closing that split is what this
+ * phase is for.
  *
- * The popup is never navigated from here. Its link is usable the moment the window renders, and
- * the user goes to the composer by clicking it.
+ * Ordering here is the whole risk. `window.open` is called inside the gesture with nothing
+ * awaited before it, because a browser that cannot trace the call back to the click blocks the
+ * window. The card is not waited for; if it has not arrived, the window opens in `preparing` and
+ * `prepareCard()` fills it in when it resolves.
  *
- * The composer `text` parameter is undocumented LinkedIn behaviour rather than a supported API,
- * so nothing here depends on it succeeding: the draft stays in the textarea on this tab, and the
- * card stays on screen in the hand-off window, whether or not the parameter was honoured.
+ * The one case that opens no window is a card that has **already** failed. There is nothing for
+ * the window to hand over, and entry `026` is what a hand-off window with no card in it costs.
+ * That user gets the dialog instead, carrying their draft and an honest reason.
  */
-function shareToLinkedIn() {
-  // The second lock. `setShareAction('failed')` already disables the control that reaches here,
-  // so this should be unreachable — but the first version of this route was also meant to be
-  // unreachable without a card, and it shipped. Reported as a card error, which is true, and
-  // never as a blocked popup, which would be this phase repeating its own subject.
-  if (!share.cardImage) {
+function openHandoffTab() {
+  beginShareIntent('linkedin');
+
+  if (share.cardState === 'failed') {
+    // Status after the open, not before: opening the dialog now clears its status line and
+    // retries the failed card, so a reason written first would be wiped by the surface it was
+    // written for. The retry is the same recovery this route had before Phase 18 moved
+    // preparation to `resetShare()`.
+    openShareDialog();
     setDialogStatus(UI_COPY.cardError, 'error');
     return;
   }
 
-  const composer = linkedInComposerUrl(currentDraft());
-
-  // The popup opens blank inside the gesture and the hand-off window renders into it at once.
-  // Nothing is awaited: Phase 12 removed the clipboard write, so there is no asynchronous
-  // outcome to wait for and none to report. The card is on screen and the user copies it there.
-  const popup = openComposerPopup(composer);
+  const popup = openComposerPopup(buildLinkedInDraft(state.result, state.task));
   if (!popup) {
-    setDialogStatus(UI_COPY.popupBlocked, 'error');
+    // The browser refused the window, so the draft needs a surface and the user needs a way out.
+    // The dialog is that surface: it already exists, it is already tested, and `popupBlocked` —
+    // `Metniniz burada duruyor`, your text is here — is a line written about it, which stays
+    // literally true because it is the thing now being shown.
+    //
+    // `share-confirm` is hidden rather than left live. It would be a second control doing what
+    // the retry beside it does, and the retry is the one `popupBlocked` names.
+    //
+    // `popupBlocked` is written after the open for the same reason as the branch above: the
+    // open clears the status line. The card is `ready` on this path — a failed one never
+    // reaches here — so the open's retry does not fire and the action state is untouched.
+    dom.shareConfirm.hidden = true;
     dom.shareOpenLinkedIn.hidden = false;
+    openShareDialog();
+    setDialogStatus(UI_COPY.popupBlocked, 'error');
     track('guc_error', { area: 'share' });
     return;
   }
 
-  setDialogStatus(UI_COPY.shareOpened);
+  share.handoffWindow = popup;
   track('guc_share_success', { method: 'linkedin', archetype: state.result.archetype });
+}
+
+function closeShareDialog() {
+  if (dom.shareDialog.open) dom.shareDialog.close();
 }
 
 /** The native sheet, used only on a genuinely coarse-pointer device. */
@@ -1043,14 +1303,20 @@ async function shareToNativeSheet() {
   }
 }
 
+/**
+ * The dialog's primary action, which since Phase 18 is the native sheet and nothing else.
+ *
+ * The desktop route used to arrive here too, one click after opening this dialog. It no longer
+ * passes through the dialog at all — `openHandoffTab()` is the whole of it — so this control is
+ * hidden on the desktop fallback and the branch that served it is gone rather than left
+ * unreachable behind a condition that can no longer be true.
+ */
 async function handleShareConfirm() {
   if (!state.result) return;
-  const native = useNativeRoute();
   shareBusy(true);
-  beginShareIntent(native ? 'native' : 'linkedin');
+  beginShareIntent('native');
   try {
-    if (native) await shareToNativeSheet();
-    else await shareToLinkedIn();
+    await shareToNativeSheet();
   } catch (error) {
     const sheetFailed = error instanceof ShareSheetError;
     setDialogStatus(sheetFailed ? UI_COPY.shareFailure : UI_COPY.cardError, 'error');
@@ -1069,8 +1335,14 @@ async function handleShareConfirm() {
 /**
  * Retry only the tab, after the browser blocked the first one.
  *
- * Both routes now produce the same hand-off window with the same card in it, so there is no
- * per-route state to reconcile and nothing to report beyond whether the window opened.
+ * **The window it opens is seeded from this dialog's box, not from a fresh draft.** The user got
+ * here because their window was blocked, and whatever they have since typed in the box in front
+ * of them is their post. Rebuilding the draft would discard it while leaving the promise beside
+ * the box — the current text in the box is what gets shared — on screen and false.
+ *
+ * From there the window's own box takes over: its link is built from its own textarea at click
+ * time, exactly as on the unblocked path. Neither surface holds a draft the other reads, so
+ * neither can leave a stale one behind for the other to send.
  */
 function retryOpenLinkedIn() {
   // Same lock as the primary route, for the same reason: this control is only ever shown after
@@ -1080,12 +1352,18 @@ function retryOpenLinkedIn() {
     return;
   }
 
-  const popup = openComposerPopup(linkedInComposerUrl(currentDraft()));
+  const popup = openComposerPopup(currentDraft());
   if (!popup) {
     setDialogStatus(UI_COPY.popupBlocked, 'error');
     return;
   }
+  share.handoffWindow = popup;
   dom.shareOpenLinkedIn.hidden = true;
+  // `shareOpened` — a new tab opened, follow the steps there — is written here and nowhere else
+  // now. It used to be written on the desktop happy path as well, at the moment the window
+  // opened, which after this phase would put it in a dialog the user never saw. Here the user is
+  // looking at this dialog when the window opens, so the line reports what just happened on the
+  // surface they are reading.
   setDialogStatus(UI_COPY.shareOpened);
 }
 
@@ -1176,7 +1454,11 @@ function handleAction(action, trigger) {
       closeMethodology();
       break;
     case 'share-open':
-      openShareDialog();
+      // The one result-screen gesture, routed by input capability rather than by user agent.
+      // A coarse pointer keeps the dialog it has always had (`D-009`); everything else now goes
+      // straight to the hand-off window, which is what this phase is.
+      if (useNativeRoute()) openShareDialog();
+      else openHandoffTab();
       break;
     case 'share-confirm':
       handleShareConfirm();
@@ -1208,6 +1490,13 @@ function bindEvents() {
 
   renderTaskPresets();
   syncTaskInput();
+
+  // The two lines that introduce an editable draft, written from the one key each. The hand-off
+  // window renders the same two keys into its own surface; authoring either as a literal in
+  // index.html and again in JS is the Phase 13 defect, which put a note outside the parity test
+  // and let it drift into a false claim.
+  dom.shareIntro.textContent = UI_COPY.draftIntro;
+  dom.shareDraftLabel.textContent = UI_COPY.draftLabel;
 
   dom.taskPresets.addEventListener('click', (event) => {
     if (!(event.target instanceof Element)) return;

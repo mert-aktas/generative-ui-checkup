@@ -286,8 +286,14 @@
     <div class="shareprep__copy">
       <p class="eyebrow">LINKEDIN PAYLAŞIMI</p>
       <h2 class="shareprep__title" id="share-dialog-heading" tabindex="-1">LinkedIn paylaşımınızı hazırlayın</h2>
-      <p class="shareprep__intro">Aşağıdaki metni dilediğiniz gibi düzenleyin. Paylaşırken kutudaki güncel metin kullanılır.</p>
-      <label class="shareprep__label" for="share-draft">LinkedIn post metni</label>
+      <!--
+        Empty, and filled from UI_COPY.draftIntro / UI_COPY.draftLabel at boot. The hand-off
+        window carries an editable draft too and is built from JS, so authoring these two here
+        as literals would put a second copy of each outside the labelled-value parity test —
+        the Phase 13 defect, which let a note drift into claiming LinkedIn opens.
+      -->
+      <p class="shareprep__intro" id="share-intro"></p>
+      <label class="shareprep__label" for="share-draft" id="share-draft-label"></label>
       <textarea class="shareprep__draft" id="share-draft" rows="10"></textarea>
       <p class="shareprep__note" id="share-note"></p>
       <p class="shareprep__status" id="share-dialog-status" role="status"></p>
