@@ -30,7 +30,7 @@ import {
   normalizeTask
 } from './questions.js';
 
-import { ARCHETYPE_IDS, PROFILE_DEFINITIONS, PROFILE_MAX } from './scoring.js';
+import { PROFILE_DEFINITIONS, PROFILE_MAX } from './scoring.js';
 
 /** The only URL this application ever shares. It carries no state, ever. */
 export const CANONICAL_URL = 'https://games.userguiding.com/generative-ui-checkup/';
@@ -122,7 +122,6 @@ export const TYPE_FLOORS = Object.freeze({ micro: 20, body: 32, footer: 28 });
 export const ROLE_FLOOR = Object.freeze({
   lockup: 'micro',
   eyebrow: 'micro',
-  index: 'micro',
   nextLabel: 'micro',
   profileMeta: 'micro',
   title: 'body',
@@ -145,7 +144,14 @@ const EYEBROW = { top: 72, line: 23, size: 20, tracking: 1.8 };
 const RULE = { y: 129.63, h: 7 };
 const BODY_TOP = 178.73;
 
-const INDEX = { size: 20, tracking: 2.4, padX: 13.1, padY: 7.49, line: 23 };
+/*
+ * `TITLE.maxWidth` is narrower than `SUMMARY.maxWidth`, and it stays that way after the archetype
+ * index box was removed from the top-right corner in Phase 19. The value is authored in the design
+ * export, not derived from the box: measured against the shipped corpus, the clearance between the
+ * wrap allowance and the box's left edge was 54.19-57.65px across the five archetypes, varying with
+ * the label's tracked width. There is no principled value to widen it to, and widening it would
+ * change where the title wraps, which moves every y-coordinate below it. See `D-016`.
+ */
 const TITLE = { weight: 700, size: 76, line: 70.68, tracking: -3.8, maxWidth: 767.52, gapAfter: 18.72 };
 const SUMMARY = { size: 34, line: 45.9, maxWidth: 823.67, gapAfter: 20 };
 
@@ -386,30 +392,18 @@ export function buildCardModel(result) {
   rect(blueEnd, RULE.y, yellowEnd - blueEnd, RULE.h, COLOR.yellow);
   rect(yellowEnd, RULE.y, RIGHT - yellowEnd, RULE.h, COLOR.ink);
 
-  /* archetype index ---------------------------------------------------- */
-  const position = ARCHETYPE_IDS.indexOf(result.archetype) + 1;
-  const indexLabel = `${String(position).padStart(2, '0')} / ${String(ARCHETYPE_IDS.length).padStart(2, '0')}`;
-  ctx.font = font(900, INDEX.size);
-  const indexW = trackedWidth(ctx, indexLabel, INDEX.tracking) + INDEX.padX * 2 + 2;
-  const indexH = INDEX.line + INDEX.padY * 2 + 2;
-  ops.push({
-    kind: 'strokeRect',
-    x: RIGHT - indexW,
-    y: BODY_TOP,
-    w: indexW,
-    h: indexH,
-    stroke: COLOR.ink
-  });
-  text('index', indexLabel, {
-    x: RIGHT - indexW / 2,
-    boxTop: BODY_TOP + INDEX.padY + 1,
-    lineHeight: INDEX.line,
-    size: INDEX.size,
-    weight: 900,
-    color: COLOR.ink,
-    align: 'center',
-    tracking: INDEX.tracking
-  });
+  /*
+   * The top-right corner is deliberately empty.
+   *
+   * It carried `NN / 05` until Phase 19 — the archetype's position in `ARCHETYPE_IDS`, which was
+   * never a score, a rank or progress. Above four profile scores out of six it read as a second
+   * denominator, and the array runs roughly least to most ready, so a low position read as a low
+   * grade. The element had always been `aria-hidden`, so nothing was ever announced to lose.
+   *
+   * Nothing replaces it and no geometry moved with it: the box was drawn from `RIGHT` inward while
+   * the title is drawn from `SAFE_AREA` outward at the same `BODY_TOP`, so no coordinate below was
+   * ever a function of it. `D-016` records why the corner was left empty rather than rebalanced.
+   */
 
   /* title and summary --------------------------------------------------- */
   ctx.font = font(TITLE.weight, TITLE.size);

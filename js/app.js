@@ -37,8 +37,7 @@ import {
   scoreAnswers,
   QUESTION_IDS,
   PROFILE_DEFINITIONS,
-  PROFILE_MAX,
-  ARCHETYPE_IDS
+  PROFILE_MAX
 } from './scoring.js';
 
 import {
@@ -149,7 +148,6 @@ const dom = {
   error: byId('question-error'),
   back: byId('question-back'),
   next: byId('question-next'),
-  resultIndex: byId('result-index'),
   resultSummary: byId('result-summary'),
   shareOpen: byId('share-open'),
   shareDialog: byId('share-dialog'),
@@ -530,10 +528,6 @@ function renderResult() {
   const { result } = state;
   const archetype = ARCHETYPE_CONTENT[result.archetype];
 
-  const position = ARCHETYPE_IDS.indexOf(result.archetype) + 1;
-  dom.resultIndex.textContent =
-    `${String(position).padStart(2, '0')} / ${String(ARCHETYPE_IDS.length).padStart(2, '0')}`;
-
   dom.headings.result.textContent = archetype.title;
   dom.resultSummary.textContent = archetype.summary;
 
@@ -769,8 +763,11 @@ const HANDOFF_ACTION_ID = 'handoff-action';
  *   - Relative URLs resolve against this document, so the stylesheet href is built from
  *     `location.href` and keeps working under the Pages project path.
  *
- * Navigation is an ordinary link. The parent never sets `location.href` on a cross-origin
- * window, and `opener` is already severed, so the composer opens with no back-reference.
+ * Navigation is an ordinary link, and since Phase 21 a targeted one: it opens a tab and leaves
+ * this window holding the card. The parent never sets `location.href` on a cross-origin window.
+ * The composer tab gets no back-reference to this one, by the implicit `noopener` of a targeted
+ * link rather than by the `opener` severed above — that one is a different relationship, this
+ * window's reference back to the app tab, and it is still needed.
  *
  * @returns {boolean} whether the window could be written to
  */
@@ -859,6 +856,24 @@ function renderHandoffWindow(popup, seedDraft) {
   const action = doc.createElement('a');
   action.className = 'handoff__action';
   action.id = HANDOFF_ACTION_ID;
+  // A new tab, because this window is the only thing holding the card. Without a target the link
+  // navigates *this* document to LinkedIn, and a user who had not pressed the download control
+  // first lost the card with no way back except restarting the run. That shipped — and the four
+  // tests that clicked this link asserted it, by awaiting the navigation on this window rather
+  // than on a tab. Phase 21 corrected them; `PLAN.md` Track ENCODED is why they read as they now do.
+  //
+  // `noopener` predates the target and was inert without it — written for a behaviour the element
+  // did not have. **It is kept, and it is still not what severs the new tab.** Measured in
+  // Chromium 151, not assumed: with a target and no `rel` at all the composer tab still reports
+  // `window.opener === null`, because a targeted link is implicitly `noopener`; only an explicit
+  // `rel="opener"` brings the reference back. Deleting this line changes nothing in either browser
+  // this suite runs. It stays for browsers predating that default, where a targeted link does hand
+  // over a live reference, and because the intent belongs beside the target — as a declaration,
+  // not a mechanism.
+  //
+  // So do not add an assertion claiming to prove this line load-bearing. One was tried; it passes
+  // with the line deleted.
+  action.target = '_blank';
   action.rel = 'noopener';
   action.textContent = UI_COPY.handoffAction;
 

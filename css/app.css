@@ -190,6 +190,19 @@ body::before {
   color: var(--body);
 }
 
+/*
+ * Explains the term in the headline above it. A step down from .lede so the offer stays the
+ * loudest thing on the screen, but the same body colour, because a reader who needs this line
+ * is the one the screen is for and a caption grey would read as a footnote.
+ */
+.definition {
+  margin: 0 0 20px;
+  max-width: 54ch;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--body);
+}
+
 .meta {
   margin: 18px 0 0;
   font-size: 13px;
@@ -556,21 +569,6 @@ summary:focus-visible,
 .qform__actions .button--primary { flex: 1 1 auto; margin-left: auto; }
 
 /* --------------------------------------------------------------- result */
-
-#screen-result { position: relative; }
-
-.result-index {
-  position: absolute;
-  right: 0;
-  top: 2px;
-  margin: 0;
-  padding: 6px 10px;
-  border: 1px solid var(--ink);
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: .12em;
-  font-variant-numeric: tabular-nums;
-}
 
 #result-summary { margin-bottom: 30px; }
 

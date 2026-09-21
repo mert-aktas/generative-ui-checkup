@@ -104,6 +104,12 @@
       <div class="landing__copy">
         <p class="eyebrow">GENERATIVE UI CHECK-UP</p>
         <h1 class="display" id="landing-heading" tabindex="-1">Ürününüz Generative UI için ne kadar hazır?</h1>
+        <!--
+          The term is in the eyebrow and the headline before anything explains it, so this sits
+          above the lede rather than below it. It is deliberately not .lede: the landing parity
+          assertion locates `#screen-landing .lede` un-narrowed and a second one breaks it.
+        -->
+        <p class="definition" id="landing-definition">Generative UI, sabit ekranlar yerine kullanıcının o anda ne yapmak istediğine göre yapay zekânın kurduğu arayüzdür.</p>
         <p class="lede">8 soruda kullanım senaryonuzu, teknik zemininizi, güvenlik sınırlarınızı ve özelliklerin keşfedilebilirliğini değerlendirin. Sonunda Generative UI için nereden başlamanız gerektiğini görün.</p>
         <p class="actions">
           <button class="button button--primary" type="button" data-action="start">Check-up'ı başlat</button>
@@ -203,7 +209,6 @@
     <!-- ============================================================= result -->
     <section class="screen" id="screen-result" aria-labelledby="result-heading" hidden>
 
-      <p class="result-index" id="result-index" aria-hidden="true"></p>
       <p class="eyebrow">SONUCUNUZ</p>
       <dl class="taskcontext" id="result-task">
         <dt class="taskcontext__label">Değerlendirilen görev</dt>
