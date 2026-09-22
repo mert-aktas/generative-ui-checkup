@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,7 +19,7 @@
   false the moment the control did; it is withdrawn rather than qualified, because it was an
   absolute claim and the qualified version is a different sentence. What is true now: the
   control saves the same data URL the card is rendered from, and only when the user presses it.
-  Nothing downloads on its own, which is what PRODUCT-SPEC.md has always prohibited — it rules
+  Nothing downloads on its own, which is what PRODUCT-SPEC.md has always prohibited: it rules
   out an *automatic* download, and always did, so D-010 did not need it relaxed.
 
   No directive was added for the download, and that is a measurement rather than an inference
@@ -56,15 +56,15 @@
   during a complete instrumented run" in tests/smoke.spec.js.
 
   There is no inline script anywhere in this file, and `script-src` carries neither
-  'unsafe-inline' nor a nonce — a meta-delivered policy cannot supply one. Google's published
-  bootstrap snippet is inline and would be blocked, so the bootstrap is a same-origin module,
-  ./js/ga4-bootstrap.js, which injects the vendor tag itself.
+  'unsafe-inline' nor a nonce, because a meta-delivered policy cannot supply one. Google's
+  published bootstrap snippet is inline and would be blocked, so the bootstrap is a same-origin
+  module, ./js/ga4-bootstrap.js, which injects the vendor tag itself.
 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.googletagmanager.com; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src https://www.google-analytics.com https://region1.google-analytics.com https://region1.analytics.google.com; base-uri 'none'; form-action 'none'">
 
 <title>Generative UI Check-up | Soft Commitment x UserGuiding</title>
-<meta name="description" content="8 soruda ürününüzün Generative UI için kullanım senaryosunu, teknik zeminini, güvenlik sınırlarını ve keşfedilebilirliğini değerlendirin.">
-<link rel="canonical" href="https://games.userguiding.com/generative-ui-checkup/">
+<meta name="description" content="Assess your product's Generative UI use case, technical ground, safety limits and feature discoverability in 8 questions.">
+<link rel="canonical" href="https://games.userguiding.com/generative-ui-checkup/en/">
 <!-- The three language versions of this page, declared so search engines serve the right
      one instead of treating them as competing duplicates. Turkish is the original and sits
      at the root; x-default points at English as the fallback for unmatched languages. -->
@@ -78,21 +78,21 @@
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Soft Commitment x UserGuiding">
-<meta property="og:locale" content="tr_TR">
-<meta property="og:url" content="https://games.userguiding.com/generative-ui-checkup/">
-<meta property="og:title" content="Ürününüz Generative UI için ne kadar hazır?">
-<meta property="og:description" content="8 soru. Dört hazırlık alanı. Size özel ilk pilot planı.">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://games.userguiding.com/generative-ui-checkup/en/">
+<meta property="og:title" content="How ready is your product for Generative UI?">
+<meta property="og:description" content="8 questions. Four readiness areas. Your own first pilot plan.">
 <!-- Absolute by requirement: crawlers do not resolve relative OG images. -->
-<meta property="og:image" content="https://games.userguiding.com/generative-ui-checkup/assets/og-image.png">
+<meta property="og:image" content="https://games.userguiding.com/generative-ui-checkup/en/assets/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Ürününüz Generative UI için ne kadar hazır?">
+<meta property="og:image:alt" content="How ready is your product for Generative UI?">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Ürününüz Generative UI için ne kadar hazır?">
-<meta name="twitter:description" content="8 soru. Dört hazırlık alanı. Size özel ilk pilot planı.">
-<meta name="twitter:image" content="https://games.userguiding.com/generative-ui-checkup/assets/og-image.png">
-<meta name="twitter:image:alt" content="Ürününüz Generative UI için ne kadar hazır?">
+<meta name="twitter:title" content="How ready is your product for Generative UI?">
+<meta name="twitter:description" content="8 questions. Four readiness areas. Your own first pilot plan.">
+<meta name="twitter:image" content="https://games.userguiding.com/generative-ui-checkup/en/assets/og-image.png">
+<meta name="twitter:image:alt" content="How ready is your product for Generative UI?">
 
 <link rel="stylesheet" href="./css/app.css">
 </head>
@@ -110,39 +110,39 @@
     <section class="screen" id="screen-landing" aria-labelledby="landing-heading">
       <div class="landing__copy">
         <p class="eyebrow">GENERATIVE UI CHECK-UP</p>
-        <h1 class="display" id="landing-heading" tabindex="-1">Ürününüz Generative UI için ne kadar hazır?</h1>
+        <h1 class="display" id="landing-heading" tabindex="-1">How ready is your product for Generative UI?</h1>
         <!--
           The term is in the eyebrow and the headline before anything explains it, so this sits
           above the lede rather than below it. It is deliberately not .lede: the landing parity
           assertion locates `#screen-landing .lede` un-narrowed and a second one breaks it.
         -->
-        <p class="definition" id="landing-definition">Generative UI, sabit ekranlar yerine kullanıcının o anda ne yapmak istediğine göre yapay zekânın kurduğu arayüzdür.</p>
-        <p class="lede">8 soruda kullanım senaryonuzu, teknik zemininizi, güvenlik sınırlarınızı ve özelliklerin keşfedilebilirliğini değerlendirin. Sonunda Generative UI için nereden başlamanız gerektiğini görün.</p>
+        <p class="definition" id="landing-definition">Generative UI is an interface that AI assembles around what the user is trying to do right now, instead of a fixed screen.</p>
+        <p class="lede">In 8 questions, assess your use case, your technical ground, your safety limits and how discoverable your features are. At the end, see where to start with Generative UI.</p>
         <p class="actions">
-          <button class="button button--primary" type="button" data-action="start">Check-up'ı başlat</button>
+          <button class="button button--primary" type="button" data-action="start">Start the Check-up</button>
         </p>
-        <p class="meta">Yaklaşık 2 dakika · Bugün çalışan ürünü değerlendirin · Giriş yapmanız veya ürününüzü bağlamanız gerekmez</p>
+        <p class="meta">About 2 minutes · Assess the product that runs today · No sign-in, no product connection</p>
         <p class="actions actions--quiet">
-          <button class="link" type="button" data-action="methodology" data-source="landing">Nasıl hesaplanıyor?</button>
+          <button class="link" type="button" data-action="methodology" data-source="landing">How is this calculated?</button>
         </p>
       </div>
       <div class="cover" aria-hidden="true">
         <img class="cover__mark" src="./assets/checkup-mark.svg" alt="" width="420" height="420">
-        <span class="note note--one">8 SORU</span>
-        <span class="note note--two">4 ALAN</span>
+        <span class="note note--one">8 QUESTIONS</span>
+        <span class="note note--two">4 AREAS</span>
       </div>
     </section>
 
     <!-- ======================================================= instructions -->
     <section class="screen" id="screen-instructions" aria-labelledby="instructions-heading" hidden>
-      <h1 class="title" id="instructions-heading" tabindex="-1">Önce değerlendireceğiniz görevi seçin</h1>
-      <p class="lede">Ürününüzde kullanıcıların sık yaptığı ve sonucu önemli olan tek bir görevi seçin. Sonraki sekiz soruda ürününüzün bu görevi bugün nasıl desteklediğini değerlendireceğiz.</p>
+      <h1 class="title" id="instructions-heading" tabindex="-1">First, pick the task you want to assess</h1>
+      <p class="lede">Pick one task your users do often and whose outcome matters. The next eight questions look at how your product supports that task today.</p>
 
       <div class="taskpick">
-        <p class="taskpick__grouplabel" id="task-presets-label">Hazır örnekler</p>
+        <p class="taskpick__grouplabel" id="task-presets-label">Ready-made examples</p>
         <div class="taskpick__presets" id="task-presets" role="group" aria-labelledby="task-presets-label"></div>
 
-        <label class="taskpick__label" for="task-input">Değerlendirilecek görev</label>
+        <label class="taskpick__label" for="task-input">Task to assess</label>
         <input class="taskpick__input"
                id="task-input"
                type="text"
@@ -151,20 +151,20 @@
                autocapitalize="sentences"
                spellcheck="false"
                maxlength="200"
-               placeholder="Örnek: Yeni kullanıcının ilk projesini oluşturması"
+               placeholder="Example: a new user creating their first project"
                aria-describedby="task-helper task-counter">
         <div class="taskpick__meta">
-          <p class="taskpick__helper" id="task-helper">Kısa ve genel yazın; müşteri veya şirket adı eklemeyin.</p>
+          <p class="taskpick__helper" id="task-helper">Keep it short and generic; do not include a customer or company name.</p>
           <p class="taskpick__counter" id="task-counter">0/80</p>
         </div>
         <p class="formerror" id="task-error" role="alert" hidden></p>
       </div>
 
-      <h2 class="subtitle" id="instructions-scoring">Planları değil, bugünkü ürünü değerlendirin.</h2>
-      <p class="lede">Roadmap'teki planları veya “istersek yaparız” dediğiniz işleri hesaba katmayın. İki seçenek arasında kalırsanız kanıtlayabildiğiniz daha düşük seçeneği işaretleyin.</p>
+      <h2 class="subtitle" id="instructions-scoring">Assess the product you have today, not the plans.</h2>
+      <p class="lede">Leave out what sits on the roadmap and anything you would describe as “we could build it if we wanted to”. If you are torn between two options, pick the lower one you can prove.</p>
 
       <p class="actions">
-        <button class="button button--primary" type="button" data-action="begin" disabled>Check-up'a başla</button>
+        <button class="button button--primary" type="button" data-action="begin" disabled>Start the Check-up</button>
       </p>
     </section>
 
@@ -181,12 +181,12 @@
         <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span>
       </div>
       <div class="progress">
-        <p class="progress__count" id="progress-count">Soru 1 / 8</p>
+        <p class="progress__count" id="progress-count">Question 1 / 8</p>
         <p class="progress__dimension" id="progress-dimension"></p>
       </div>
 
       <dl class="taskcontext" id="question-task">
-        <dt class="taskcontext__label">Değerlendirilen görev</dt>
+        <dt class="taskcontext__label">Assessed task</dt>
         <dd class="taskcontext__value" id="question-task-value"></dd>
       </dl>
 
@@ -206,8 +206,8 @@
         <p class="formerror" id="question-error" role="alert" hidden></p>
 
         <div class="qform__actions">
-          <button class="button button--quiet" type="button" data-action="back" id="question-back">Geri</button>
-          <button class="button button--primary" type="submit" id="question-next" disabled>Devam</button>
+          <button class="button button--quiet" type="button" data-action="back" id="question-back">Back</button>
+          <button class="button button--primary" type="submit" id="question-next" disabled>Continue</button>
         </div>
       </form>
 
@@ -216,56 +216,56 @@
     <!-- ============================================================= result -->
     <section class="screen" id="screen-result" aria-labelledby="result-heading" hidden>
 
-      <p class="eyebrow">SONUCUNUZ</p>
+      <p class="eyebrow">YOUR RESULT</p>
       <dl class="taskcontext" id="result-task">
-        <dt class="taskcontext__label">Değerlendirilen görev</dt>
+        <dt class="taskcontext__label">Assessed task</dt>
         <dd class="taskcontext__value" id="result-task-value"></dd>
       </dl>
       <h1 class="display display--result" id="result-heading" tabindex="-1"></h1>
       <p class="lede" id="result-summary"></p>
 
       <section class="block" aria-labelledby="profiles-heading">
-        <h2 class="block__title" id="profiles-heading">Generative UI hazırlık profiliniz</h2>
+        <h2 class="block__title" id="profiles-heading">Your Generative UI readiness profile</h2>
         <ul class="profiles" id="result-profiles"></ul>
       </section>
 
       <section class="block" aria-labelledby="strength-heading">
-        <h2 class="block__title" id="strength-heading">Bugünkü güçlü temeliniz</h2>
+        <h2 class="block__title" id="strength-heading">The strong ground you have today</h2>
         <p class="block__body" id="result-strength"></p>
       </section>
 
       <section class="block" aria-labelledby="gaps-heading">
-        <h2 class="block__title" id="gaps-heading">Pilotta güvence altına almanız gereken iki alan</h2>
+        <h2 class="block__title" id="gaps-heading">Two areas to secure during the pilot</h2>
         <ol class="gaps" id="result-gaps"></ol>
       </section>
 
       <section class="block" aria-labelledby="experiment-heading">
-        <h2 class="block__title" id="experiment-heading">Önerilen ilk Generative UI pilotu</h2>
+        <h2 class="block__title" id="experiment-heading">Suggested first Generative UI pilot</h2>
         <p class="block__body block__body--scope" id="result-pilot-scope"></p>
         <p class="block__body" id="result-experiment"></p>
       </section>
 
       <div class="share" id="result-share-mount">
         <div class="share__actions">
-          <button class="button button--primary" type="button" data-action="share-open" id="share-open">Sonucumu paylaş<span class="button__glyph" aria-hidden="true">↗</span></button>
+          <button class="button button--primary" type="button" data-action="share-open" id="share-open">Share my result<span class="button__glyph" aria-hidden="true">↗</span></button>
         </div>
       </div>
 
       <p class="actions actions--quiet">
-        <button class="link" type="button" data-action="methodology" data-source="result">Metodolojiyi gör</button>
-        <button class="link" type="button" data-action="restart">Yeniden başla</button>
+        <button class="link" type="button" data-action="methodology" data-source="result">See the methodology</button>
+        <button class="link" type="button" data-action="restart">Start over</button>
       </p>
 
       <aside class="partners" aria-labelledby="partners-heading">
-        <h2 class="block__title" id="partners-heading">Hazırlayanlar</h2>
+        <h2 class="block__title" id="partners-heading">Made by</h2>
         <div class="partners__grid">
           <a class="partner" href="https://www.softcommitment.com/?utm_source=generative_ui_checkup" target="_blank" rel="noopener" data-action="partner" data-destination="soft_commitment">
             <strong class="partner__wordmark" lang="en">Soft Commitment</strong>
-            <span>AI, startup'lar ve yeni ekonomi üzerine iki haftada bir yayımlanan bağımsız bülten.</span>
+            <span>An independent newsletter on AI, startups and the new economy, published every two weeks.</span>
           </a>
           <a class="partner" href="https://userguiding.com/?utm_source=generative_ui_checkup" target="_blank" rel="noopener" data-action="partner" data-destination="userguiding">
             <strong class="partner__wordmark partner__wordmark--ug" lang="en">UserGuiding</strong>
-            <span>Ürün ekiplerinin kod yazmadan onboarding ve ürün içi deneyimler oluşturmasını sağlayan product adoption platformu.</span>
+            <span>A product adoption platform that lets product teams build onboarding and in-app experiences without writing code.</span>
           </a>
         </div>
       </aside>
@@ -275,20 +275,20 @@
   </main>
 
   <footer class="colophon">
-    <p>Soft Commitment x UserGuiding iş birliğiyle hazırlandı.</p>
+    <p>Made together by Soft Commitment and UserGuiding.</p>
   </footer>
 
 </div>
 
 <dialog class="methodology" id="methodology" aria-labelledby="methodology-heading">
   <div class="methodology__inner">
-    <h2 class="methodology__title" id="methodology-heading" tabindex="-1">Bu sonuç nasıl hesaplanıyor?</h2>
-    <p>Sekiz soru, Generative UI hazırlığının dört ayrı alanını ölçer: kullanım senaryosu, teknik hazırlık, kontrol ve güvenlik, keşfedilebilirlik. Her alan 0 ile 6 arasında ayrı değerlendirilir. Güçlü bir alan başka bir alandaki açığı kapatmaz; bu yüzden tek bir toplam puan göstermiyoruz.</p>
-    <p>Sonuç türünüz, dört alandaki eşiklerin belirli bir sırayla değerlendirilmesiyle oluşur. Ardından en güçlü yanıtınız bugünkü temelinizi belirler. En düşük iki yanıtınız, tam eşitlik halinde ise en yüksek riskli iki alan, pilot sırasında öncelikle güvence altına almanız gereken kontrolleri belirler.</p>
-    <p>Sorular Soft Commitment ve UserGuiding tarafından bu çalışma için yazıldı. Sonuç, sektör karşılaştırması veya otomatik bir ürün incelemesi değildir; ekibinizin Generative UI hazırlığını aynı başlıklar altında konuşabilmesi için tasarlanmış bir öz değerlendirmedir.</p>
-    <p>Sonuç yalnızca seçtiğiniz sekiz cevaptan hesaplanır. Ürün bağlantısı, kod analizi veya müşteri verisi kullanılmaz.</p>
+    <h2 class="methodology__title" id="methodology-heading" tabindex="-1">How is this result calculated?</h2>
+    <p>The eight questions measure four separate areas of Generative UI readiness: use case fit, technical readiness, control and safety, discoverability. Each area is scored on its own from 0 to 6. A strong area does not cover a gap in another one, which is why we do not show a single total score.</p>
+    <p>Your result type comes from evaluating the thresholds across those four areas in a set order. Your strongest answer then sets the ground you have today. Your two lowest answers, or on an exact tie the two highest-risk areas, set the controls to secure first during the pilot.</p>
+    <p>Soft Commitment and UserGuiding wrote the questions for this project. The result is not an industry benchmark and not an automated product review. It is a self-assessment, built so your team can talk about Generative UI readiness under the same headings.</p>
+    <p>The result is calculated from the eight answers you pick and nothing else. No product connection, no code analysis, no customer data.</p>
     <p class="actions">
-      <button class="button button--primary" type="button" data-action="methodology-close">Kapat</button>
+      <button class="button button--primary" type="button" data-action="methodology-close">Close</button>
     </p>
   </div>
 </dialog>
@@ -296,12 +296,12 @@
 <dialog class="shareprep" id="share-dialog" aria-labelledby="share-dialog-heading">
   <div class="shareprep__inner">
     <div class="shareprep__copy">
-      <p class="eyebrow">LINKEDIN PAYLAŞIMI</p>
-      <h2 class="shareprep__title" id="share-dialog-heading" tabindex="-1">LinkedIn paylaşımınızı hazırlayın</h2>
+      <p class="eyebrow">LINKEDIN POST</p>
+      <h2 class="shareprep__title" id="share-dialog-heading" tabindex="-1">Prepare your LinkedIn post</h2>
       <!--
         Empty, and filled from UI_COPY.draftIntro / UI_COPY.draftLabel at boot. The hand-off
         window carries an editable draft too and is built from JS, so authoring these two here
-        as literals would put a second copy of each outside the labelled-value parity test —
+        as literals would put a second copy of each outside the labelled-value parity test:
         the Phase 13 defect, which let a note drift into claiming LinkedIn opens.
       -->
       <p class="shareprep__intro" id="share-intro"></p>
@@ -312,10 +312,10 @@
       <div class="shareprep__actions">
         <button class="button button--primary" type="button" data-action="share-confirm" id="share-confirm" data-state="preparing" disabled></button>
         <button class="button button--quiet" type="button" data-action="share-open-linkedin" id="share-open-linkedin" hidden></button>
-        <button class="link" type="button" data-action="share-close">Kapat</button>
+        <button class="link" type="button" data-action="share-close">Close</button>
       </div>
     </div>
-    <div class="shareprep__preview" id="share-preview" aria-label="Sonuç karnesi önizlemesi"></div>
+    <div class="shareprep__preview" id="share-preview" aria-label="Result card preview"></div>
   </div>
 </dialog>
 

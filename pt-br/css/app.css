@@ -1,0 +1,1200 @@
+/*
+ * Generative UI Check-up: interface styles.
+ *
+ * Implements the locked visual system in ../../design/DESIGN-SYSTEM.md, translated onto
+ * the Phase 2 semantic DOM. The grammar is an editorial "readiness field sheet": ruled
+ * paper, registration marks, numbered steps, yellow annotation tabs, and the four-rail
+ * motif that never merges into a single score.
+ *
+ * Codex owns the art direction. Palette, motif and composition come from design/; this
+ * file only translates them. System fonts only, so there is no font request and no layout
+ * shift. Mobile first, no horizontal scroll at 320px.
+ */
+
+/* --------------------------------------------------------------- tokens */
+
+:root {
+  --paper: #F4F0E7;
+  --paper-hi: #FFFCF5;
+  --ink: #172033;
+  --ink-soft: #596174;
+  --body: #3E4659;
+  --blue: #4169F0;
+  --blue-deep: #2849B8;
+  --blue-wash: #E8EDFF;
+  --yellow: #F2D85D;
+  --coral: #E56F5D;
+  --line: #D6D0C3;
+  --cell: #AEB5C2;
+  --white: #FFFFFF;
+
+  --col: 760px;
+  --radius: 14px;
+}
+
+:root[data-screen="landing"] { --col: 1080px; }
+
+/* ---------------------------------------------------------------- reset */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+/* Ruled field-sheet ground. Decorative and non-interactive. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(23, 32, 51, .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 32, 51, .035) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+[hidden] { display: none !important; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------- layout */
+
+.shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 0 20px;
+}
+
+.masthead,
+.main,
+.colophon {
+  width: 100%;
+  max-width: var(--col);
+  margin-inline: auto;
+}
+
+.masthead { padding: 26px 0 22px; }
+.main { flex: 1 0 auto; padding: 4px 0 48px; }
+
+.colophon {
+  padding: 24px 0 32px;
+  border-top: 1px solid var(--line);
+}
+
+.colophon p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* Partnership lockup: text only, thin rule in place of the separator. */
+.lockup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  color: var(--ink-soft);
+}
+
+.lockup__part { text-transform: uppercase; }
+
+.lockup__rule {
+  display: block;
+  flex: none;
+  width: 28px;
+  height: 1px;
+  background: var(--line);
+}
+
+/* ----------------------------------------------------------- typography */
+
+/* Yellow annotation tab. Rotation stays under one degree. */
+.eyebrow {
+  display: inline-block;
+  margin: 0 0 22px;
+  padding: 9px 12px;
+  background: var(--yellow);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  transform: rotate(-.6deg);
+}
+
+.display {
+  margin: 0 0 18px;
+  font-size: clamp(38px, 8.4vw, 68px);
+  font-weight: 800;
+  line-height: .99;
+  letter-spacing: -.042em;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+.display--result {
+  font-size: clamp(31px, 7vw, 52px);
+  line-height: 1.02;
+  letter-spacing: -.038em;
+}
+
+.title {
+  margin: 0 0 26px;
+  font-size: clamp(25px, 5.6vw, 38px);
+  font-weight: 750;
+  line-height: 1.06;
+  letter-spacing: -.035em;
+  overflow-wrap: break-word;
+}
+
+/* Question prompts carry more scenario context than the short screen headings. */
+.qform .title {
+  max-width: 31ch;
+  font-size: clamp(22px, 4.8vw, 32px);
+  line-height: 1.14;
+  letter-spacing: -.025em;
+}
+
+.lede {
+  margin: 0 0 26px;
+  max-width: 58ch;
+  font-size: 19px;
+  line-height: 1.45;
+  color: var(--body);
+}
+
+/*
+ * Explains the term in the headline above it. A step down from .lede so the offer stays the
+ * loudest thing on the screen, but the same body colour, because a reader who needs this line
+ * is the one the screen is for and a caption grey would read as a footnote.
+ */
+.definition {
+  margin: 0 0 20px;
+  max-width: 54ch;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--body);
+}
+
+.meta {
+  margin: 18px 0 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* -------------------------------------------------------------- actions */
+
+.actions { margin: 0; }
+.actions--quiet { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 4px 22px; }
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  max-width: 100%;
+  padding: 12px 20px;
+  border: 1.5px solid var(--ink);
+  border-radius: 10px;
+  background: var(--paper-hi);
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+.button--primary {
+  background: var(--ink);
+  color: var(--white);
+  box-shadow: 0 4px 0 var(--blue);
+}
+
+.button--primary:hover { background: #0E1626; }
+
+.button--quiet { background: transparent; }
+.button--quiet:hover { background: var(--paper-hi); }
+
+.button--chip {
+  min-height: 48px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 750;
+  background: var(--paper-hi);
+}
+
+.button--chip:hover { background: var(--blue-wash); border-color: var(--blue); }
+
+.button:disabled {
+  background: var(--paper);
+  border-color: var(--line);
+  color: var(--ink-soft);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.button:disabled:hover { background: var(--paper); }
+
+.button__glyph { font-weight: 700; }
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--blue-deep);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ---------------------------------------------------------------- focus */
+
+/* Interactive controls carry the strong indicator. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+summary:focus-visible,
+.choice:has(.choice__input:focus-visible) {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.choice:has(.choice__input:focus-visible) { border-radius: var(--radius); }
+
+/* Screen headings and dialog titles are focused
+   programmatically so every new view is announced from its own title. They are not tab
+   stops and never need the control indicator.
+   Chrome matches :focus-visible here only when the move followed a keypress, which is
+   precisely when a keyboard user wants to see where focus landed; a pointer-driven move
+   paints nothing. The marker is a quiet brand ring, deliberately unlike the 3px ink ring
+   above, so a highlighted heading reads as "this view just opened" rather than as a stray
+   control outline. Control indicators are untouched. */
+[tabindex="-1"]:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 6px;
+  border-radius: 10px;
+}
+
+[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
+
+/* -------------------------------------------------------------- landing */
+
+#screen-landing { position: relative; }
+
+.cover {
+  position: relative;
+  margin: 40px auto 0;
+  width: min(100%, 320px);
+}
+
+.cover__mark {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform: rotate(1.5deg);
+  filter: drop-shadow(0 18px 28px rgba(23, 32, 51, .12));
+}
+
+.note {
+  position: absolute;
+  padding: 9px 12px;
+  background: var(--yellow);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  box-shadow: 0 8px 18px rgba(23, 32, 51, .12);
+}
+
+.note--one { left: -8px; top: 24%; transform: rotate(-4deg); }
+.note--two { right: -8px; bottom: 21%; transform: rotate(3deg); }
+
+/* Asymmetric 7/5 grid once there is room for it. */
+@media (min-width: 860px) {
+  #screen-landing {
+    display: grid;
+    grid-template-columns: 1.08fr .92fr;
+    column-gap: 64px;
+    align-items: center;
+    min-height: 600px;
+  }
+
+  .landing__copy { max-width: 610px; }
+
+  .cover {
+    justify-self: center;
+    margin: 0;
+    width: min(100%, 410px);
+  }
+}
+
+/* ------------------------------------------------------------- question */
+
+.stepper {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.stepper > span {
+  display: grid;
+  place-items: center;
+  height: 31px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--paper-hi);
+  font-size: 12px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+.stepper > span[data-state="done"] {
+  border-color: var(--blue);
+  background: var(--blue-wash);
+  color: var(--blue-deep);
+}
+
+.stepper > span[data-state="current"] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--white);
+  box-shadow: 0 3px 0 var(--yellow);
+}
+
+.progress {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-bottom: 22px;
+}
+
+.progress__count {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+/* The dimension is an annotation tab, not a headline. */
+.progress__dimension {
+  margin: 0;
+  padding: 7px 11px;
+  background: var(--yellow);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-align: right;
+  transform: rotate(.5deg);
+}
+
+.qform__fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0; /* fieldsets default to min-content, which breaks the 320px column */
+}
+
+.qform__legend {
+  display: block;
+  width: 100%;
+  padding: 0;
+}
+
+.choices { display: grid; gap: 10px; }
+
+.choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 66px;
+  padding: 12px 16px;
+  background: var(--paper-hi);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+/* The native radio stays in the DOM, focusable and arrow-navigable. Only its painting is
+   replaced by the lettered marker the design system specifies.
+   It is stretched over the whole row rather than hidden in a corner, so the control itself
+   is the hit surface: nothing can obscure it, and the tap target is the full choice row. */
+.choice__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  appearance: none;
+  cursor: pointer;
+}
+
+.choice__marker {
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  height: 34px;
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 900;
+  font-style: normal;
+  color: var(--ink-soft);
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.choice__text {
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.choice:hover { border-color: var(--blue); }
+
+.choice[data-selected],
+.choice:has(.choice__input:checked) {
+  border: 2px solid var(--blue);
+  padding: 11.5px 15.5px;
+  background: var(--blue-wash);
+}
+
+.choice[data-selected] .choice__marker,
+.choice:has(.choice__input:checked) .choice__marker {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: var(--white);
+}
+
+/* Inset ruled note. */
+.help {
+  margin: 16px 0 0;
+  padding: 0 14px;
+  background: rgba(255, 252, 245, .7);
+  border-left: 4px solid var(--yellow);
+}
+
+.help__summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 11px 0;
+  font-size: 14px;
+  font-weight: 750;
+  color: var(--blue-deep);
+  cursor: pointer;
+}
+
+.help__summary::marker { content: none; }
+.help__summary::-webkit-details-marker { display: none; }
+
+.help__summary::before {
+  content: "+";
+  flex: none;
+  margin-right: 9px;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.help[open] .help__summary::before { content: "\2212"; }
+
+.help__body {
+  margin: 0;
+  padding: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.formerror {
+  margin: 14px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--coral);
+}
+
+.qform__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.qform__actions .button { white-space: nowrap; }
+.qform__actions .button--primary { flex: 1 1 auto; margin-left: auto; }
+
+/* --------------------------------------------------------------- result */
+
+#result-summary { margin-bottom: 30px; }
+
+.block { margin: 30px 0 0; }
+
+/* Sentence case, exactly as COPY-TR.md authors these headings. No text-transform, so
+   what a copy reviewer sees on screen is what the source document says. */
+.block__title {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  color: var(--ink-soft);
+}
+
+.block__body { margin: 0; font-size: 17px; line-height: 1.5; color: var(--body); }
+
+/* Four independent rails inside one sheet. They never merge into a total. */
+.profiles {
+  list-style: none;
+  display: grid;
+  gap: 18px;
+  margin: 0;
+  padding: 24px;
+  background: var(--paper-hi);
+  border: 1px solid var(--line);
+  box-shadow: 8px 8px 0 var(--blue-wash);
+}
+
+/* Positioned so each row's visually-hidden readout stays inside its own row. */
+.profile { position: relative; }
+
+.profile__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 9px;
+}
+
+.profile__name { font-size: 15px; font-weight: 750; }
+
+.profile__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.profile__score { font-variant-numeric: tabular-nums; }
+
+.profile__meter {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 5px;
+}
+
+.profile__seg {
+  height: 13px;
+  border: 1px solid var(--cell);
+  border-radius: 2px;
+  background: transparent;
+}
+
+.profile__seg--on { border-color: var(--blue); background: var(--blue); }
+
+.gaps {
+  margin: 0;
+  padding-left: 1.35em;
+  display: grid;
+  gap: 10px;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--body);
+}
+
+/* Strength and next-experiment take the ruled-article treatment. */
+#strength-heading + .block__body,
+#experiment-heading + .block__body {
+  padding: 18px 20px;
+  background: rgba(255, 252, 245, .72);
+  border-top: 4px solid var(--ink);
+  color: var(--body);
+}
+
+#experiment-heading + .block__body { border-top-color: var(--yellow); }
+
+/* ---------------------------------------------------------------- share */
+
+.share { margin: 30px 0 0; }
+
+.share__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ------------------------------------------------------------- partners */
+
+.partners {
+  margin: 34px 0 0;
+}
+
+.partners__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.partner {
+  display: grid;
+  gap: 10px;
+  min-height: 142px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  background: var(--paper-hi);
+  color: var(--body);
+  font-size: 14px;
+  line-height: 1.5;
+  text-decoration: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.partner:hover {
+  border-color: var(--blue);
+  box-shadow: 5px 5px 0 var(--blue-wash);
+  transform: translate(-1px, -1px);
+}
+
+.partner__wordmark {
+  align-self: start;
+  color: var(--ink);
+  font-size: 19px;
+  letter-spacing: -.025em;
+}
+
+.partner__wordmark--ug { color: var(--blue-deep); }
+
+/* ---------------------------------------------------------- methodology */
+
+.methodology {
+  width: calc(100% - 32px);
+  max-width: 640px;
+  max-height: calc(100dvh - 40px);
+  padding: 0;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper-hi);
+  color: var(--ink);
+  overflow: auto;
+}
+
+.methodology::backdrop { background: rgba(23, 32, 51, .58); }
+
+.methodology__inner { padding: 26px 24px 24px; }
+
+.methodology__title {
+  margin: 0 0 18px;
+  font-size: clamp(22px, 5vw, 28px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -.03em;
+}
+
+.methodology p {
+  margin: 0 0 14px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--body);
+}
+
+.methodology .actions { margin-top: 20px; }
+
+/* -------------------------------------------------------- share prepare */
+
+.shareprep {
+  width: calc(100% - 32px);
+  max-width: 980px;
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  overflow: auto;
+}
+
+.shareprep::backdrop { background: rgba(23, 32, 51, .64); }
+
+.shareprep__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+  gap: 28px;
+  padding: 28px;
+}
+
+.shareprep__title {
+  margin: 0 0 12px;
+  font-size: clamp(24px, 4vw, 34px);
+  line-height: 1.08;
+  letter-spacing: -.03em;
+}
+
+.shareprep__intro,
+.shareprep__note,
+.shareprep__status {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--body);
+}
+
+.shareprep__intro { margin: 0 0 18px; }
+.shareprep__note { margin: 12px 0 0; }
+.shareprep__status { min-height: 1.5em; margin: 10px 0 0; font-weight: 700; }
+.shareprep__status[data-tone="error"] { color: var(--coral); }
+
+.shareprep__label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+
+.shareprep__draft {
+  width: 100%;
+  min-height: 260px;
+  resize: vertical;
+  padding: 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  background: var(--paper-hi);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.shareprep__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 20px;
+  margin-top: 18px;
+}
+
+.shareprep__preview {
+  align-self: start;
+  padding: 12px;
+  background: var(--paper-hi);
+  border: 1px solid var(--line);
+  box-shadow: 8px 8px 0 var(--blue-wash);
+}
+
+.shareprep__preview canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* --------------------------------------------------------------- motion */
+
+.screen--enter { animation: screen-in 160ms ease-out both; }
+
+@keyframes screen-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .screen--enter { animation: none; }
+}
+
+/* ---------------------------------------------------------- narrow tune */
+
+@media (max-width: 420px) {
+  .shell { padding: 0 16px; }
+  .button { font-size: 16px; padding: 12px 16px; }
+  .choice { min-height: 60px; padding: 10px 12px; }
+  .choice[data-selected],
+  .choice:has(.choice__input:checked) { padding: 9.5px 11.5px; }
+  .choice__text { font-size: 15px; }
+  .stepper { gap: 5px; }
+  .stepper > span { height: 28px; font-size: 11px; }
+  .profiles { padding: 18px; box-shadow: 5px 5px 0 var(--blue-wash); }
+  .lede { font-size: 17px; }
+  .note { display: none; }
+  .cover { width: min(100%, 250px); margin-top: 32px; }
+}
+
+@media (max-width: 760px) {
+  .partners__grid { grid-template-columns: 1fr; }
+  .shareprep__inner { grid-template-columns: 1fr; padding: 20px; }
+  .shareprep__preview { max-width: 320px; order: -1; }
+  .shareprep__draft { min-height: 220px; }
+}
+
+/* ------------------------------------------------------------ task picker */
+
+.taskpick {
+  margin: 0 0 34px;
+  padding: 20px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper-hi);
+}
+
+.taskpick__grouplabel {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.taskpick__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 22px;
+}
+
+.taskpick__preset {
+  /* 44px is the floor; 46 keeps sub-pixel layout rounding from dipping under it. */
+  min-height: 46px;
+  max-width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: left;
+  overflow-wrap: break-word;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.taskpick__preset:hover { border-color: var(--ink); background: var(--white); }
+
+.taskpick__label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+
+.taskpick__input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+}
+
+.taskpick__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin-top: 8px;
+}
+
+.taskpick__helper {
+  flex: 1 1 14ch;
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.taskpick__counter {
+  margin: 0;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+.taskpick__counter[data-over="true"] { color: var(--coral); font-weight: 800; }
+
+.subtitle {
+  margin: 0 0 14px;
+  font-size: clamp(19px, 3.2vw, 24px);
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -.02em;
+  overflow-wrap: break-word;
+}
+
+/* ---------------------------------------------------------- task context */
+
+/* The task the whole run is about, shown above every question and on the result. */
+.taskcontext {
+  margin: 0 0 22px;
+  padding: 12px 14px;
+  border-left: 4px solid var(--blue);
+  background: var(--blue-wash);
+}
+
+.taskcontext__label {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--blue-deep);
+}
+
+.taskcontext__value {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--ink);
+  /* A user string can be one unbroken 80-character word. */
+  overflow-wrap: anywhere;
+}
+
+.block__body--scope { margin-bottom: 10px; font-weight: 700; }
+
+/* ------------------------------------------------ composer hand-off window */
+
+/*
+ * The window opened between the Check-up and the LinkedIn composer (O-014), rebuilt in
+ * Phase 12 around the card.
+ *
+ * These rules live in this stylesheet, rather than beside the code that builds that window,
+ * because the window inherits this page's `style-src 'self'`: inline style attributes and
+ * inline <style> elements are both dropped, silently, leaving an unstyled window rather than
+ * an error. An external sheet is the only styling that survives, and a second CSS file would
+ * widen the ten-file runtime allowlist for one surface.
+ *
+ * Everything below reuses the locked system's tokens, the `.partners` boxes and the
+ * `.colophon` footer. No new visual treatment is introduced: `design/` is Codex-owned and
+ * read-only. The one thing the system has no existing pattern for is a two-column split at
+ * this size, so it is expressed with the same grid primitive `.partners__grid` already uses
+ * and the same 760px stacking breakpoint, rather than inventing a new responsive rule.
+ */
+
+.handoff-body {
+  margin: 0;
+  padding: 0 20px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.handoff {
+  box-sizing: border-box;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 28px 0 8px;
+}
+
+.handoff__heading {
+  margin: 0 0 20px;
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+/* The card takes the larger share: the user has to right-click it. */
+.handoff__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.handoff__figure {
+  margin: 0;
+}
+
+.handoff__card {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  box-shadow: 5px 5px 0 var(--blue-wash);
+}
+
+.handoff__aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.handoff__instruction {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.5;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.handoff__note {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* The preparing and failed states. Hidden in `ready`, where the instruction is what to read. */
+.handoff__status {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.handoff__status[data-state="failed"] { color: var(--coral); }
+
+/* The card, its instruction and the download control, present or absent as one unit. Entry 026
+   shipped a conditional image beside an unconditional instruction; grouping them is what makes
+   that pairing unrepresentable rather than merely avoided. */
+.handoff__card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.handoff__card-actions:empty { display: none; }
+
+/* The draft this phase moved in from the dialog on the other tab. Full width of the aside, and
+   tall enough to read the whole post without scrolling it. */
+.handoff__label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.handoff__draft {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 200px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.handoff__draft:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.handoff__action {
+  display: inline-block;
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: var(--white);
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.handoff__action:hover { background: var(--blue-deep); }
+
+/* The download control D-010 added. Secondary to the way out, which is why it is outlined
+   rather than filled: it is an equal way to take the card, not an equal-weight next step. */
+.handoff__download {
+  display: inline-block;
+  padding: 10px 20px;
+  border: 2px solid var(--blue);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--blue);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.handoff__download:hover {
+  background: var(--blue);
+  color: var(--white);
+}
+
+/* Both controls carry the same focus treatment. A keyboard user is the reason the download
+   control exists (O-019), so an invisible focus ring on it would defeat the repair. */
+.handoff__action:focus-visible,
+.handoff__download:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.handoff__colophon {
+  box-sizing: border-box;
+  max-width: 900px;
+  margin: 0 auto;
+  padding-inline: 0;
+}
+
+/*
+ * One column on a phone. 760px is the breakpoint `.partners__grid` already stacks at, so the
+ * two-column split and the partner boxes collapse together rather than at different widths.
+ */
+@media (max-width: 760px) {
+  .handoff__columns { grid-template-columns: 1fr; gap: 20px; }
+  .handoff__card { max-width: 360px; }
+}
