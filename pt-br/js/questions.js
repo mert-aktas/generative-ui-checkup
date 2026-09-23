@@ -33,7 +33,7 @@ export const QUESTIONS = deepFreeze([
       "Não mudam: todo mundo usa os mesmos passos e a mesma tela",
       "A estrutura continua a mesma; só o conteúdo ou a prioridade muda",
       "O papel do usuário ou o estado do produto muda alguns componentes e a ordem dos passos",
-      "Exige uma tela de trabalho variável: objetivo, papel e estado ao vivo mudam boa parte da tela"
+      "Exige uma tela de trabalho variável: objetivo, papel e estado atual mudam boa parte da tela"
     ],
     help: {
       label: "O que é uma tela de trabalho variável?",
@@ -45,7 +45,7 @@ export const QUESTIONS = deepFreeze([
     dimension: "valueFit",
     text: "Qual é o impacto dessa tarefa no usuário e no resultado de negócio?",
     options: [
-      "É feita raramente; o impacto é mais visual",
+      "É feita raramente; o impacto é mais cosmético",
       "Se repete, mas tem impacto baixo no usuário ou no resultado de negócio",
       "É feita com frequência, tem vários passos e afeta um resultado importante",
       "É uma das tarefas críticas do usuário; importa diretamente para activation, retention ou revenue"
@@ -58,7 +58,7 @@ export const QUESTIONS = deepFreeze([
   {
     id: "q3",
     dimension: "systemReadiness",
-    text: "Quanto as telas atuais do produto que apoiam essa tarefa são feitas de componentes reutilizáveis?",
+    text: "O quanto as telas que hoje dão suporte a essa tarefa são feitas de componentes reutilizáveis?",
     options: [
       "As telas foram escritas sob medida para cada página; as partes estão fortemente acopladas",
       "Existem blocos visuais comuns; o comportamento deles ainda depende da página",
@@ -76,9 +76,9 @@ export const QUESTIONS = deepFreeze([
     text: "Durante essa tarefa, quais sinais de contexto confiáveis seu produto usa para escolher o conteúdo ou o fluxo certo?",
     options: [
       "Fora da página em que o usuário está, nenhum sinal relevante é usado",
-      "Dá para usar papel, plano ou dados da conta",
-      "Além disso, dá para usar o estado ao vivo do produto e as ações recentes do usuário",
-      "Dá para usar em conjunto o objetivo declarado do usuário, o estado ao vivo, o histórico autorizado e as permissões"
+      "Papel, plano ou dados da conta podem ser usados",
+      "Além disso, o estado atual do produto e as ações recentes do usuário podem ser usados",
+      "O objetivo declarado do usuário, o estado atual, o histórico autorizado e as permissões podem ser usados em conjunto"
     ],
     help: {
       label: "O que é um sinal de contexto?",
@@ -90,14 +90,14 @@ export const QUESTIONS = deepFreeze([
     dimension: "controlSafety",
     text: "Quando o usuário cai numa tela errada, irrelevante ou inesperada durante essa tarefa, como ele se recupera?",
     options: [
-      "Ele não consegue ver por que a tela mudou; não existe um caminho de volta confiável",
+      "Ele não consegue ver por que a tela mudou; não existe um retorno seguro confiável",
       "Ele pode voltar ou recomeçar o fluxo do zero",
       "Ele vê o motivo da mudança e pode trocar a escolha ou voltar para a tela padrão",
       "Existe retorno seguro: o usuário pode pré-visualizar a tela, editar a escolha, resetar ou voltar ao fluxo padrão"
     ],
     help: {
       label: "O que é retorno seguro?",
-      body: "Retorno seguro é o caminho confiável para onde o usuário volta quando uma tela inesperada ou um fluxo não funciona. A visualização anterior, a tela padrão do produto, a opção de editar ou a de resetar são o que sustentam essa confiança."
+      body: "Retorno seguro é o caminho confiável para onde o usuário volta quando uma tela inesperada ou um fluxo não funciona. A visualização anterior, a tela padrão do produto, a opção de editar ou a de resetar são o que sustenta essa confiança."
     }
   },
   {
@@ -107,7 +107,7 @@ export const QUESTIONS = deepFreeze([
     options: [
       "A ação é executada direto",
       "Uma tela de confirmação padrão é exibida",
-      "Há checagem de permissão e resumo da ação; existe desfazer ou registro da operação",
+      "Há checagem de permissão e resumo da ação; existe a opção de desfazer ou registro da operação",
       "Só ações aprovadas previamente, com pré-visualização, permissão, regra de negócio e registro de auditoria"
     ],
     help: {
@@ -133,9 +133,9 @@ export const QUESTIONS = deepFreeze([
   {
     id: "q8",
     dimension: "discoveryResilience",
-    text: "Se uma funcionalidade necessária para essa tarefa não está visível na tela naquele momento, como o usuário a encontra hoje?",
+    text: "Se uma funcionalidade necessária para essa tarefa não estiver visível na tela naquele momento, como o usuário a encontra hoje?",
     options: [
-      "Só busca se souber o nome da funcionalidade, ou pergunta para o time de support",
+      "Só busca se souber o nome da funcionalidade, ou pergunta para o time de suporte",
       "Consegue encontrar na documentação ou na busca",
       "Consegue descobrir por uma central dentro do produto, navegável e independente da tela",
       "A descobribilidade vem por mais de um caminho: central navegável no produto, indicação conforme o contexto e volta aos itens usados recentemente"
@@ -316,7 +316,7 @@ export const ARCHETYPE_CONTENT = deepFreeze({
   problem_seeking_genui: {
     title: "ACHE A TAREFA CERTA PRIMEIRO",
     summary: "A ideia de Generative UI existe, mas ainda não está claro em qual tarefa do usuário ela vai gerar valor mensurável.",
-    experiment: "Escolha uma única tarefa. Valide em cinco entrevistas com usuários se os passos de que usuários novos e experientes precisam mudam mesmo."
+    experiment: "Escolha uma única tarefa. Valide em cinco entrevistas se os passos que usuários novos e experientes precisam seguir realmente mudam."
   },
   idea_ready_ground_not: {
     title: "TEM CASO DE USO, FALTA BASE",
@@ -325,18 +325,18 @@ export const ARCHETYPE_CONTENT = deepFreeze({
   },
   composition_ready_catalog_blind: {
     title: "TELA PRONTA, CATÁLOGO AUSENTE",
-    summary: "A base técnica para montar a tela dinamicamente é forte. Mas o sistema não conhece as funcionalidades fora do menu, e o que não aparece pode deixar de existir para o usuário.",
-    experiment: "Para uma área do produto, monte um catálogo de funcionalidades pesquisável e fora do menu. Depois teste se uma funcionalidade oculta é reencontrada."
+    summary: "A base técnica para montar a tela dinamicamente é forte. Mas falta um catálogo de funcionalidades independente do menu, e o que não aparece pode sumir para o usuário.",
+    experiment: "Para uma área do produto, monte um catálogo de funcionalidades pesquisável e independente do menu. Depois teste se o usuário reencontra uma funcionalidade oculta."
   },
   pilot_ground_discovery_partial: {
     title: "PILOTO POSSÍVEL, FALTA DESCOBERTA",
-    summary: "Um piloto estreito de Generative UI é possível. Mas a descoberta de funcionalidades, ou pelo menos uma das outras áreas de preparo, ainda está incompleta; o piloto não pode ofuscar a navegação permanente.",
-    experiment: "Adapte uma única tarefa. No mesmo piloto, meça a conclusão da tarefa, a volta à tela padrão e a busca por funcionalidades ocultas."
+    summary: "Um piloto restrito de Generative UI é possível. Mas a descoberta de funcionalidades, ou pelo menos uma das outras áreas de preparo, ainda está incompleta; o piloto não pode ofuscar a navegação permanente.",
+    experiment: "Adapte uma única tarefa. No mesmo piloto, meça a conclusão da tarefa, a volta à tela padrão e se as funcionalidades ocultas são encontradas."
   },
   controlled_trial_ground: {
     title: "PRONTO PARA UM PILOTO CONTROLADO",
     summary: "Pelas suas respostas, você tem base para um piloto de Generative UI limitado a uma única tarefa, mensurável e reversível. Este resultado não é uma aprovação para colocar o produto em produção.",
-    experiment: "Escolha uma única tarefa e um segmento de usuários. Limite as permissões, preserve a tela permanente e rode o piloto atrás de um feature flag."
+    experiment: "Escolha uma única tarefa e um segmento de usuários. Limite as permissões, preserve a tela padrão e rode o piloto atrás de uma feature flag."
   }
 });
 
@@ -352,7 +352,7 @@ export const STRENGTH_COPY = deepFreeze({
   q5: "O usuário entende a tela gerada, consegue alterá-la e consegue voltar para a tela padrão.",
   q6: "As ações críticas estão protegidas por permissão, pré-visualização e registro de auditoria.",
   q7: "Seu catálogo de funcionalidades independe do menu principal e pode ser lido pelo sistema.",
-  q8: "Mesmo quando o Generative UI não as mostra, o usuário consegue reencontrar as funcionalidades.",
+  q8: "Mesmo quando o Generative UI não mostra as funcionalidades, o usuário consegue reencontrá-las.",
   fallback: "Seu primeiro passo no preparo para Generative UI está claro: antes de escolher um piloto, defina o problema de uso principal e os limites de segurança."
 });
 
@@ -414,7 +414,7 @@ export const UI_COPY = deepFreeze({
   handoffFailed: "Não foi possível preparar seu cartão de resultado. Mesmo assim, você pode compartilhar o texto do post por aqui.",
   handoffAction: "Ir para o LinkedIn",
   handoffCardAlt: "Seu cartão de resultado",
-  colophon: "Feito em parceria por Soft Commitment x UserGuiding.",
+  colophon: "Uma parceria Soft Commitment x UserGuiding.",
   popupBlocked: "O navegador bloqueou a nova aba. Seu texto continua aqui; você pode abrir o LinkedIn pelo botão abaixo.",
   popupBlockedAction: "Abrir o LinkedIn",
   shareCancelled: "O compartilhamento foi cancelado. Seu texto continua aqui; quando quiser, é só tentar de novo.",
@@ -432,7 +432,7 @@ export const CARD_COPY = deepFreeze({
   eyebrow: "GENERATIVE UI CHECK-UP",
   lockupLeft: "Soft Commitment",
   lockupRight: "UserGuiding",
-  nextLabelSource: "Primeiro piloto de Generative UI",
+  nextLabelSource: "Sugestão de primeiro piloto de Generative UI",
   footerStrong: "Resumo do preparo para Generative UI.",
   footerNote: "Autoavaliação de 8 perguntas.",
   footerUrlTop: "games.userguiding.com/",
@@ -458,7 +458,7 @@ export const CARD_COPY = deepFreeze({
  */
 export const SHARE_COPY = deepFreeze({
   title: "Meu resultado no Generative UI Check-up",
-  text: "Meu resultado no Generative UI Check-up: {archetype}\n\nO Check-up está aqui: {url}\n\nTarefa que avaliei: {task}\n\nMinha base forte hoje:\n{strength}\n\nMeu primeiro passo de piloto:\n{experiment}\n\nQuão pronto você acha que seu produto está para Generative UI?",
+  text: "Meu resultado no Generative UI Check-up: {archetype}\n\nO Check-up está aqui: {url}\n\nTarefa que avaliei: {task}\n\nOnde eu já estou bem:\n{strength}\n\nMeu primeiro passo no piloto:\n{experiment}\n\nO quanto você acha que seu produto está pronto para Generative UI?",
   taskLine: "Tarefa que avaliei: {task}",
   url: "https://games.userguiding.com/generative-ui-checkup/pt-br/?utm_source=generative_ui_checkup"
 });

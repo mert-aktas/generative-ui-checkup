@@ -58,7 +58,7 @@ export const QUESTIONS = deepFreeze([
   {
     id: "q3",
     dimension: "systemReadiness",
-    text: "How far are the current product screens behind this task built from reusable components?",
+    text: "How much of the product UI behind this task is built from reusable components?",
     options: [
       "Screens are written per page, and the parts are tightly coupled to each other",
       "There are shared visual blocks, but their behavior is still tied to the page",
@@ -76,9 +76,9 @@ export const QUESTIONS = deepFreeze([
     text: "During this task, which reliable context signals does your product use to pick the right content or flow?",
     options: [
       "Nothing meaningful beyond the page the user is on",
-      "Role, plan or account information is available",
-      "On top of that, live product state and recent user activity are available",
-      "Stated user intent, live state, permitted history and entitlements are all available together"
+      "Role, plan or account information can be used",
+      "On top of that, live product state and recent user activity can be used",
+      "Stated user intent, live state, consented history and permissions can all be used together"
     ],
     help: {
       label: "What is a context signal?",
@@ -92,7 +92,7 @@ export const QUESTIONS = deepFreeze([
     options: [
       "They cannot see why the screen changed, and there is no reliable way back",
       "They can back out or start the flow over",
-      "They can see why it changed, and can change their choice or return to the standard UI",
+      "They can see why it changed, and can change their choice or return to the standard screen",
       "There is a safe fallback: the user can preview the screen, edit their choice, reset it, or return to the standard flow"
     ],
     help: {
@@ -123,7 +123,7 @@ export const QUESTIONS = deepFreeze([
       "There is no current inventory of what the product can actually do",
       "The knowledge sits scattered across documentation and across teams",
       "There is a current feature catalog with an owner and a target user for each entry",
-      "The feature catalog is current and searchable, and is linked to roles, permissions and prerequisites"
+      "A feature catalog that is current and searchable, and linked to roles, permissions and prerequisites"
     ],
     help: {
       label: "What is a feature catalog?",
@@ -135,7 +135,7 @@ export const QUESTIONS = deepFreeze([
     dimension: "discoveryResilience",
     text: "If a feature this task needs is not visible on screen at that moment, how does a user find it today?",
     options: [
-      "Only by searching for it if they already know its name, or by asking the support team",
+      "Only if they already know the feature's name, or by asking the support team",
       "They can find it in the documentation or through search",
       "They can discover it from a browsable in-product hub that is independent of the screen",
       "Discoverability comes through several routes: a browsable product hub, contextual pointers, and a way back to recently used items"
@@ -257,7 +257,7 @@ export const TASK_COPY = deepFreeze({
   placeholder: "Example: a new user creating their first project",
   helper: "Keep it short and generic; do not include a customer or company name.",
   counterTemplate: "{count}/80",
-  errorTooShort: "Write a task of at least 3 characters to continue.",
+  errorTooShort: "To continue, write a task of at least 3 characters.",
   errorTooLong: "A task can be at most 80 characters."
 });
 
@@ -319,9 +319,9 @@ export const ARCHETYPE_CONTENT = deepFreeze({
     experiment: "Pick one task. Run five user interviews to confirm that the steps new and experienced users need are genuinely different."
   },
   idea_ready_ground_not: {
-    title: "USE CASE YES, FOUNDATION NOT YET",
-    summary: "You can see a real use case for Generative UI. The component system, the context signals or the safe fallback layer are not yet enough for a pilot.",
-    experiment: "Pick one task with no critical actions. Build a prototype that runs on existing components and can fall back to the standard UI."
+    title: "USE CASE CLEAR, FOUNDATION NOT YET",
+    summary: "You can see a real use case for Generative UI. But the component system, the context signals or the safe fallback layer is not yet enough for a pilot.",
+    experiment: "Pick one task with no critical actions. Build a prototype that runs on existing components and can fall back to the standard screen."
   },
   composition_ready_catalog_blind: {
     title: "UI READY, NO FEATURE CATALOG",
@@ -331,7 +331,7 @@ export const ARCHETYPE_CONTENT = deepFreeze({
   pilot_ground_discovery_partial: {
     title: "PILOT POSSIBLE, DISCOVERY THIN",
     summary: "A narrow Generative UI pilot is possible. Feature discovery, or at least one of the other readiness areas, is still incomplete, so the pilot should not overshadow your permanent navigation.",
-    experiment: "Adapt a single task. In the same pilot, measure task success, returns to the standard UI, and whether hidden features get found."
+    experiment: "Adapt a single task. In the same pilot, measure task success, returns to the standard screen, and whether hidden features get found."
   },
   controlled_trial_ground: {
     title: "READY FOR A CONTROLLED PILOT",
@@ -349,7 +349,7 @@ export const STRENGTH_COPY = deepFreeze({
   q2: "The task you picked has a real impact on activation, retention or revenue.",
   q3: "Your component system is in a state where a screen can be reassembled safely.",
   q4: "You have reliable, permitted context signals for choosing the right screen.",
-  q5: "Users can understand a generated screen, change it, and get back to the standard UI.",
+  q5: "Users can understand a generated screen, change it, and get back to the standard screen.",
   q6: "Critical actions are protected by permissions, a preview and an audit log.",
   q7: "Your feature catalog is independent of the main menu and readable by a system.",
   q8: "Users can find features again even when Generative UI does not surface them.",
@@ -367,12 +367,12 @@ export const STRENGTH_COPY = deepFreeze({
 export const RECOMMENDATION_COPY = deepFreeze({
   q1: "Pin the pilot to a single user task, and verify by measurement that the screen it needs really does change when role or product state changes.",
   q2: "Tie the pilot to one measurable outcome connected to activation, retention or revenue, and track that outcome for the length of the pilot.",
-  q3: "During the pilot, secure the inputs, states, permissions and error behavior of every component in scope, in a form the system can read.",
+  q3: "During the pilot, pin down the inputs, states, permissions and error behavior of every component in scope, in a form the system can read.",
   q4: "Restrict the context signals the pilot may use to a list that is current, permitted and traceable to a source, and hold that limit for the whole pilot.",
-  q5: "In the pilot, secure the explanation of why a screen was shown, along with the routes to edit it, reset it and return to the standard flow.",
-  q6: "In the pilot, secure critical actions behind a permission check, a clear summary, a confirmation and an audit log.",
-  q7: "In the pilot, secure a feature catalog that is current, searchable and independent of the menu, with the owner, target user, permission and prerequisite for each entry.",
-  q8: "In the pilot, secure the ability to find features that are not on screen, through a searchable product hub, contextual pointers and a way back to recently used items."
+  q5: "Make sure the pilot explains why a screen was shown, and that the user can edit it, reset it or return to the standard flow.",
+  q6: "Keep critical actions in the pilot behind a permission check, a clear summary, a confirmation and an audit log.",
+  q7: "Keep the feature catalog current, searchable and independent of the menu through the pilot, with the owner, target user, permission and prerequisite for each entry.",
+  q8: "Through the pilot, keep features findable when they are off screen, with a searchable product hub, contextual pointers and a way back to recently used items."
 });
 
 /**
@@ -384,9 +384,9 @@ export const UI_COPY = deepFreeze({
   progress: "Question {current} / 8",
   next: "Continue",
   finish: "Show my result",
-  unansweredError: "Pick the option that is true for your product today to continue.",
+  unansweredError: "To continue, pick the option that is true for your product today.",
   resultError: "The result could not be calculated. Check your answers and try again.",
-  begin: "Start the Check-up",
+  begin: "Start the questions",
   taskLabel: "Assessed task",
   pilotScope: "Limit your first pilot to a reversible part of \u201C{task}\u201D that carries no critical actions.",
   cardPreparing: "Preparing your result card…",
@@ -414,7 +414,7 @@ export const UI_COPY = deepFreeze({
   handoffFailed: "Your result card could not be prepared. You can still share your post text from here.",
   handoffAction: "Go to LinkedIn",
   handoffCardAlt: "Your result card",
-  colophon: "Made together by Soft Commitment and UserGuiding.",
+  colophon: "A Soft Commitment x UserGuiding collaboration.",
   popupBlocked: "The browser blocked the new tab. Your text is still here, and you can open LinkedIn with the button below.",
   popupBlockedAction: "Open LinkedIn",
   shareCancelled: "Sharing was cancelled. Your text is still here, and you can try again when you are ready.",
